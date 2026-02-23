@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 200">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0d1117"/>
+      <stop offset="50%" style="stop-color:#161b22"/>
+      <stop offset="100%" style="stop-color:#0d1117"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#f0b429"/>
+      <stop offset="50%" style="stop-color:#f7d070"/>
+      <stop offset="100%" style="stop-color:#f0b429"/>
+    </linearGradient>
+    <linearGradient id="pulse" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#58a6ff">
+        <animate attributeName="stop-color" values="#58a6ff;#a371f7;#58a6ff" dur="3s" repeatCount="indefinite"/>
+      </stop>
+      <stop offset="100%" style="stop-color:#a371f7">
+        <animate attributeName="stop-color" values="#a371f7;#58a6ff;#a371f7" dur="3s" repeatCount="indefinite"/>
+      </stop>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="900" height="200" rx="12" fill="url(#bg)"/>
+  <rect x="1" y="1" width="898" height="198" rx="12" fill="none" stroke="#30363d" stroke-width="1"/>
+  
+  <!-- Animated hex grid background -->
+  <g opacity="0.06">
+    <polygon points="80,40 100,28 120,40 120,60 100,72 80,60" fill="#f0b429">
+      <animate attributeName="opacity" values="0.3;0.8;0.3" dur="4s" repeatCount="indefinite"/>
+    </polygon>
+    <polygon points="140,70 160,58 180,70 180,90 160,102 140,90" fill="#f0b429">
+      <animate attributeName="opacity" values="0.5;1;0.5" dur="3s" repeatCount="indefinite"/>
+    </polygon>
+    <polygon points="50,100 70,88 90,100 90,120 70,132 50,120" fill="#f0b429">
+      <animate attributeName="opacity" values="0.2;0.7;0.2" dur="5s" repeatCount="indefinite"/>
+    </polygon>
+    <polygon points="720,30 740,18 760,30 760,50 740,62 720,50" fill="#58a6ff">
+      <animate attributeName="opacity" values="0.4;0.9;0.4" dur="3.5s" repeatCount="indefinite"/>
+    </polygon>
+    <polygon points="780,80 800,68 820,80 820,100 800,112 780,100" fill="#58a6ff">
+      <animate attributeName="opacity" values="0.3;0.8;0.3" dur="4.5s" repeatCount="indefinite"/>
+    </polygon>
+    <polygon points="750,130 770,118 790,130 790,150 770,162 750,150" fill="#a371f7">
+      <animate attributeName="opacity" values="0.5;1;0.5" dur="3s" repeatCount="indefinite"/>
+    </polygon>
+    <polygon points="820,140 840,128 860,140 860,160 840,172 820,160" fill="#a371f7">
+      <animate attributeName="opacity" values="0.2;0.6;0.2" dur="4s" repeatCount="indefinite"/>
+    </polygon>
+  </g>
+
+  <!-- Bee icon -->
+  <g transform="translate(310, 58)">
+    <circle cx="0" cy="0" r="22" fill="#f0b429" opacity="0.15">
+      <animate attributeName="r" values="22;26;22" dur="2s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.15;0.25;0.15" dur="2s" repeatCount="indefinite"/>
+    </circle>
+    <text x="0" y="8" text-anchor="middle" font-size="28">🐝</text>
+  </g>
+
+  <!-- Title -->
+  <text x="350" y="72" font-family="'Segoe UI',system-ui,sans-serif" font-size="42" font-weight="700" fill="url(#gold)" filter="url(#glow)">Copilot Hive</text>
+
+  <!-- Subtitle with animated gradient -->
+  <text x="450" y="108" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="16" fill="url(#pulse)" font-weight="500">Autonomous AI Agent Swarm for Continuous Development</text>
+
+  <!-- Stats bar -->
+  <g transform="translate(0, 140)">
+    <rect x="120" y="0" width="660" height="36" rx="18" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+    
+    <circle cx="175" cy="18" r="5" fill="#a371f7">
+      <animate attributeName="opacity" values="0.5;1;0.5" dur="2s" repeatCount="indefinite"/>
+    </circle>
+    <text x="188" y="23" font-family="'Segoe UI',system-ui,sans-serif" font-size="12" fill="#8b949e">11 Agents</text>
+    
+    <text x="290" y="23" font-family="monospace" font-size="12" fill="#30363d">│</text>
+    
+    <circle cx="315" cy="18" r="5" fill="#3fb950">
+      <animate attributeName="opacity" values="0.5;1;0.5" dur="1.5s" repeatCount="indefinite"/>
+    </circle>
+    <text x="328" y="23" font-family="'Segoe UI',system-ui,sans-serif" font-size="12" fill="#8b949e">780+ Ideas/Day</text>
+
+    <text x="440" y="23" font-family="monospace" font-size="12" fill="#30363d">│</text>
+    
+    <circle cx="465" cy="18" r="5" fill="#f0b429">
+      <animate attributeName="opacity" values="0.5;1;0.5" dur="2.5s" repeatCount="indefinite"/>
+    </circle>
+    <text x="478" y="23" font-family="'Segoe UI',system-ui,sans-serif" font-size="12" fill="#8b949e">24/7 Autonomous</text>
+    
+    <text x="598" y="23" font-family="monospace" font-size="12" fill="#30363d">│</text>
+
+    <circle cx="623" cy="18" r="5" fill="#f85149">
+      <animate attributeName="opacity" values="0.5;1;0.5" dur="1.8s" repeatCount="indefinite"/>
+    </circle>
+    <text x="636" y="23" font-family="'Segoe UI',system-ui,sans-serif" font-size="12" fill="#8b949e">Self-Healing</text>
+  </g>
+</svg>

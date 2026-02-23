@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 280">
+  <defs>
+    <linearGradient id="bgPipe" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0d1117"/>
+      <stop offset="100%" style="stop-color:#161b22"/>
+    </linearGradient>
+    <filter id="sh"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.3"/></filter>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#58a6ff"/>
+    </marker>
+    <marker id="arR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#f85149"/>
+    </marker>
+    <marker id="arG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#3fb950"/>
+    </marker>
+  </defs>
+  
+  <rect width="880" height="280" rx="12" fill="url(#bgPipe)"/>
+  <rect x="1" y="1" width="878" height="278" rx="12" fill="none" stroke="#30363d" stroke-width="1"/>
+  <text x="440" y="30" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="14" font-weight="700" fill="#f0b429">⚡ PIPELINE STATE MACHINE</text>
+
+  <!-- IDLE -->
+  <g filter="url(#sh)">
+    <rect x="40" y="80" width="140" height="70" rx="35" fill="#21262d" stroke="#8b949e" stroke-width="2"/>
+    <text x="110" y="120" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="15" fill="#e6edf3" font-weight="700">💤 IDLE</text>
+    <text x="110" y="138" text-anchor="middle" font-family="monospace" font-size="9" fill="#8b949e">ready for next</text>
+  </g>
+
+  <!-- Arrow: IDLE → RUNNING -->
+  <line x1="185" y1="115" x2="230" y2="115" stroke="#3fb950" stroke-width="2" marker-end="url(#arG)" stroke-dasharray="5,3">
+    <animate attributeName="stroke-dashoffset" values="0;-16" dur="0.8s" repeatCount="indefinite"/>
+  </line>
+  <text x="208" y="108" text-anchor="middle" font-family="monospace" font-size="8" fill="#3fb950">launch</text>
+
+  <!-- RUNNING -->
+  <g filter="url(#sh)">
+    <rect x="235" y="80" width="155" height="70" rx="35" fill="#21262d" stroke="#3fb950" stroke-width="2"/>
+    <circle cx="260" cy="110" r="5" fill="#3fb950">
+      <animate attributeName="opacity" values="0.3;1;0.3" dur="1s" repeatCount="indefinite"/>
+    </circle>
+    <text x="322" y="120" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="15" fill="#e6edf3" font-weight="700">🔧 RUNNING</text>
+    <text x="312" y="138" text-anchor="middle" font-family="monospace" font-size="9" fill="#3fb950">agent working</text>
+  </g>
+
+  <!-- Arrow: RUNNING → WAITING -->
+  <line x1="395" y1="115" x2="435" y2="115" stroke="#58a6ff" stroke-width="2" marker-end="url(#ar)" stroke-dasharray="5,3">
+    <animate attributeName="stroke-dashoffset" values="0;-16" dur="0.8s" repeatCount="indefinite"/>
+  </line>
+  <text x="415" y="108" text-anchor="middle" font-family="monospace" font-size="8" fill="#58a6ff">push</text>
+
+  <!-- WAITING DEPLOY -->
+  <g filter="url(#sh)">
+    <rect x="440" y="80" width="175" height="70" rx="35" fill="#21262d" stroke="#58a6ff" stroke-width="2"/>
+    <circle cx="470" cy="115" r="8" fill="none" stroke="#58a6ff" stroke-width="2">
+      <animate attributeName="stroke-dasharray" values="0,50;50,0" dur="1.5s" repeatCount="indefinite"/>
+    </circle>
+    <text x="542" y="120" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="14" fill="#e6edf3" font-weight="700">⏳ DEPLOY</text>
+    <text x="535" y="138" text-anchor="middle" font-family="monospace" font-size="9" fill="#58a6ff">verify version</text>
+  </g>
+
+  <!-- Arrow: WAITING → IDLE (success) -->
+  <path d="M 620 115 Q 680 115 680 70 Q 680 45 440 45 Q 110 45 110 75" fill="none" stroke="#3fb950" stroke-width="2" marker-end="url(#arG)" stroke-dasharray="6,3">
+    <animate attributeName="stroke-dashoffset" values="0;-18" dur="2s" repeatCount="indefinite"/>
+  </path>
+  <text x="400" y="40" text-anchor="middle" font-family="monospace" font-size="9" fill="#3fb950">✅ version verified → next agent</text>
+
+  <!-- Arrow: WAITING → FIXING (failure) -->
+  <line x1="527" y1="155" x2="527" y2="190" stroke="#f85149" stroke-width="2" marker-end="url(#arR)" stroke-dasharray="4,3">
+    <animate attributeName="stroke-dashoffset" values="0;-14" dur="0.6s" repeatCount="indefinite"/>
+  </line>
+  <text x="555" y="177" font-family="monospace" font-size="8" fill="#f85149">failed!</text>
+
+  <!-- FIXING -->
+  <g filter="url(#sh)">
+    <rect x="440" y="195" width="175" height="70" rx="35" fill="#21262d" stroke="#f85149" stroke-width="2"/>
+    <circle cx="468" cy="230" r="5" fill="#f85149">
+      <animate attributeName="opacity" values="0.2;1;0.2" dur="0.5s" repeatCount="indefinite"/>
+    </circle>
+    <text x="542" y="225" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="14" fill="#e6edf3" font-weight="700">🔧 FIXING</text>
+    <text x="535" y="248" text-anchor="middle" font-family="monospace" font-size="9" fill="#f85149">re-run breaker</text>
+    <text x="535" y="258" text-anchor="middle" font-family="monospace" font-size="8" fill="#8b949e">2 retries → 🚑 escalate</text>
+  </g>
+
+  <!-- Arrow: FIXING → WAITING (retry) -->
+  <path d="M 620 230 Q 660 230 660 170 Q 660 115 620 115" fill="none" stroke="#f0b429" stroke-width="1.5" marker-end="url(#ar)" stroke-dasharray="4,3">
+    <animate attributeName="stroke-dashoffset" values="0;-14" dur="1s" repeatCount="indefinite"/>
+  </path>
+  <text x="672" y="172" font-family="monospace" font-size="8" fill="#f0b429">retry</text>
+
+  <!-- Legend -->
+  <g transform="translate(60, 210)">
+    <rect x="0" y="0" width="310" height="55" rx="6" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+    <circle cx="15" cy="17" r="4" fill="#3fb950"/><text x="25" y="21" font-family="monospace" font-size="9" fill="#8b949e">Success flow</text>
+    <circle cx="115" cy="17" r="4" fill="#58a6ff"/><text x="125" y="21" font-family="monospace" font-size="9" fill="#8b949e">Waiting</text>
+    <circle cx="195" cy="17" r="4" fill="#f85149"/><text x="205" y="21" font-family="monospace" font-size="9" fill="#8b949e">Failure</text>
+    <circle cx="270" cy="17" r="4" fill="#f0b429"/><text x="280" y="21" font-family="monospace" font-size="9" fill="#8b949e">Retry</text>
+    <text x="15" y="43" font-family="monospace" font-size="9" fill="#7d8590">Dispatcher checks every 60s · Max 2 retries before 🚑</text>
+  </g>
+</svg>
