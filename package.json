@@ -1,0 +1,47 @@
+{
+  "name": "@gil906/copilot-hive",
+  "version": "1.0.0",
+  "description": "🐝 Autonomous AI Agent Swarm — 11 GitHub Copilot agents that research, develop, audit, and deploy improvements to production apps 24/7. Collection of agent prompts, scripts, and pipeline orchestration.",
+  "main": "index.js",
+  "bin": {
+    "copilot-hive": "bin/cli.js"
+  },
+  "scripts": {
+    "test": "node bin/cli.js --help"
+  },
+  "keywords": [
+    "github-copilot",
+    "ai-agents",
+    "autonomous",
+    "devops",
+    "cicd",
+    "agent-swarm",
+    "copilot-cli",
+    "automation",
+    "self-healing",
+    "ai-development",
+    "prompt-engineering",
+    "copilot-prompts"
+  ],
+  "author": "gil906",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gil906/copilot-hive.git"
+  },
+  "homepage": "https://github.com/gil906/copilot-hive#readme",
+  "bugs": {
+    "url": "https://github.com/gil906/copilot-hive/issues"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "files": [
+    "bin/",
+    "prompts/",
+    "templates/",
+    "index.js",
+    "README.md",
+    "LICENSE"
+  ]
+}

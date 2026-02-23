@@ -25,3 +25,4 @@ ideas/*_latest.md
 # OS
 .DS_Store
 Thumbs.db
+.npmrc
