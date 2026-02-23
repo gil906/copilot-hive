@@ -1,0 +1,67 @@
+====================================================
+  CRONTAB COMMANDS - SecurityAdvisor Copilot Scripts
+====================================================
+
+STEP 1 — Make scripts executable (run once):
+---------------------------------------------
+chmod +x /opt/copilot-hive/copilot-improve.sh
+chmod +x /opt/copilot-hive/copilot-audit.sh
+
+
+STEP 2 — Trust the project folder (run once as root):
+------------------------------------------------------
+cd /opt/yourproject && copilot
+# When prompted, choose: "Yes, and remember this folder for future sessions"
+# Then press Ctrl+C to exit
+
+
+STEP 3 — Open crontab editor (as root):
+----------------------------------------
+crontab -e
+
+
+STEP 4 — Paste these 2 lines into crontab and save:
+----------------------------------------------------
+# SecurityAdvisor - Improve features (runs at 1,3,5,7,9,11,13,15,17,19,21,23)
+0 1-23/2 * * * /opt/copilot-hive/copilot-improve.sh
+
+# SecurityAdvisor - Audit & fix GUI/scanner (runs at 2,4,6,8,10,12,14,16,18,20,22)
+0 2-22/2 * * * /opt/copilot-hive/copilot-audit.sh
+
+
+STEP 5 — Verify crontab was saved:
+------------------------------------
+crontab -l
+
+
+STEP 6 — Monitor logs in real time:
+-------------------------------------
+tail -f /opt/copilot-hive/copilot-improve.log
+tail -f /opt/copilot-hive/copilot-audit.log
+
+
+SCHEDULE SUMMARY:
+-----------------
+1:00 AM  → copilot-improve.sh  (add/improve features)
+2:00 AM  → copilot-audit.sh    (audit & fix)
+3:00 AM  → copilot-improve.sh
+4:00 AM  → copilot-audit.sh
+5:00 AM  → copilot-improve.sh
+6:00 AM  → copilot-audit.sh
+... repeats every 2 hours, staggered by 1 hour, all day
+
+
+MANUAL TEST (run scripts immediately without waiting for cron):
+---------------------------------------------------------------
+/opt/copilot-hive/copilot-improve.sh
+/opt/copilot-hive/copilot-audit.sh
+
+
+FILES REFERENCE:
+----------------
+/opt/copilot-hive/copilot-improve.sh   → Feature improvement script
+/opt/copilot-hive/copilot-audit.sh     → GUI audit & fix script
+/opt/copilot-hive/copilot-improve.log  → Improve script log output
+/opt/copilot-hive/copilot-audit.log    → Audit script log output
+/opt/copilot-hive/commands.txt         → This file
+/opt/copilot-hive/prompts-explained.txt → Prompt explanations

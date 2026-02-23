@@ -1,0 +1,27 @@
+# Logs
+*.log
+
+# Runtime state
+.pipeline-status
+.alert-context.json
+.agents-paused
+.agent-paused-*
+.last-emergency-*
+.health-cooldown
+
+# Secrets
+.env
+*.env
+
+# Changelogs (auto-generated)
+changelogs/
+
+# Actual idea files (use .example.json as templates)
+ideas/admin_ideas.json
+ideas/agent_status.json
+ideas/implemented.log
+ideas/*_latest.md
+
+# OS
+.DS_Store
+Thumbs.db

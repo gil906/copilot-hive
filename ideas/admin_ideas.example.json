@@ -1,0 +1,13 @@
+{
+  "ideas": [
+    {
+      "id": "example-idea-1",
+      "title": "Example: Add dark mode toggle",
+      "description": "Add a dark mode toggle to the settings page. Use CSS variables for theming.",
+      "urgent": false,
+      "status": "pending",
+      "submitted_at": "2026-01-01T00:00:00Z",
+      "submitted_by": "admin"
+    }
+  ]
+}

@@ -1,0 +1,89 @@
+{
+  "last_updated": "2026-02-23T03:35:00Z",
+  "standards": [
+    {
+      "id": "owasp-top10",
+      "name": "OWASP Top 10",
+      "icon": "\ud83d\udee1\ufe0f",
+      "category": "Web Security",
+      "overall_status": "partial",
+      "certification_type": "Framework (free)",
+      "estimated_cost": "Free \u2014 self-assessment",
+      "estimated_time": "Ongoing",
+      "how_to_get": "Implement scanning coverage for all 10 OWASP categories in the scanner modules",
+      "reference_url": "https://owasp.org/www-project-top-ten/",
+      "items": [
+        {
+          "id": "owasp-a01",
+          "name": "A01:2021 Broken Access Control",
+          "status": "partial",
+          "displayed_on_site": true,
+          "actually_implemented": true,
+          "description": "Access control enforces policy so users cannot act outside their intended permissions",
+          "what_we_have": "Basic auth scanning",
+          "what_we_need": "IDOR detection, forced browsing checks",
+          "priority": "high"
+        },
+        {
+          "id": "owasp-a02",
+          "name": "A02:2021 Cryptographic Failures",
+          "status": "implemented",
+          "displayed_on_site": true,
+          "actually_implemented": true,
+          "description": "Failures related to cryptography which often lead to sensitive data exposure",
+          "what_we_have": "SSL/TLS scanner, header checks",
+          "what_we_need": "",
+          "priority": "medium"
+        },
+        {
+          "id": "owasp-a03",
+          "name": "A03:2021 Injection",
+          "status": "implemented",
+          "displayed_on_site": true,
+          "actually_implemented": true,
+          "description": "SQL injection, XSS, and other injection flaws",
+          "what_we_have": "SQLi scanner, XSS scanner, command injection checks",
+          "what_we_need": "",
+          "priority": "high"
+        }
+      ]
+    },
+    {
+      "id": "soc2",
+      "name": "SOC 2 Type II",
+      "icon": "\ud83d\udd12",
+      "category": "Trust Services",
+      "overall_status": "missing",
+      "certification_type": "Formal Audit",
+      "estimated_cost": "$20,000 \u2014 $100,000+",
+      "estimated_time": "6\u201312 months",
+      "how_to_get": "Engage a CPA firm (e.g., Schellman, A-LIGN) to perform SOC 2 Type II audit. Requires documented policies, evidence of controls operating over 6+ months.",
+      "reference_url": "https://www.aicpa.org/interestareas/frc/assuranceadvisoryservices/aicpasoc2report",
+      "items": [
+        {
+          "id": "soc2-cc1",
+          "name": "CC1: Control Environment",
+          "status": "in_progress",
+          "displayed_on_site": true,
+          "actually_implemented": false,
+          "description": "Organizational commitment to integrity and ethical values",
+          "what_we_have": "",
+          "what_we_need": "Documented security policies, org chart, code of conduct",
+          "priority": "high",
+          "admin_override": true
+        },
+        {
+          "id": "soc2-cc6",
+          "name": "CC6: Logical & Physical Access",
+          "status": "partial",
+          "displayed_on_site": true,
+          "actually_implemented": false,
+          "description": "Logical access controls, authentication, authorization",
+          "what_we_have": "JWT auth, role-based access",
+          "what_we_need": "MFA, access reviews, privileged access management",
+          "priority": "high"
+        }
+      ]
+    }
+  ]
+}

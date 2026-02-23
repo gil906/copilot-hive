@@ -1,0 +1,7 @@
+{
+  "agents": {
+    "improve": {"status": "idle", "last_exit_code": 0},
+    "audit": {"status": "idle", "last_exit_code": 0},
+    "radical": {"status": "idle", "last_exit_code": 0}
+  }
+}

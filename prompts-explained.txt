@@ -1,0 +1,155 @@
+====================================================
+  PROMPT EXPLANATIONS - SecurityAdvisor Copilot Scripts
+====================================================
+
+
+════════════════════════════════════════════════════
+  SCRIPT 1 — copilot-improve.sh
+  "Feature Improvement Prompt"
+════════════════════════════════════════════════════
+
+WHAT IT DOES:
+-------------
+This script tells Copilot to actively improve the yourproject project.
+It focuses on adding and enhancing features across the entire codebase —
+API, UI, mobile experience, scanner logic, design, animations, and architecture.
+It does not just suggest changes — it implements them directly.
+
+THE PROMPT:
+-----------
+"for my container yourproject, improve the website in the API
+functionalities, features, details, mobile friendly when coming from phone,
+more professional and makes the scanner better. if you see things to improve
+on the architecture, design connections, demos, reports, animations, etc do it."
+
+HOW IT WORKS:
+-------------
+- Copilot reads the entire project codebase in /opt/yourproject
+- It identifies areas that can be improved across API, UI, and scanner
+- It makes code changes directly (no confirmation needed due to --yolo)
+- Changes are saved to disk automatically
+- Everything is logged to: /opt/copilot-hive/copilot-improve.log
+
+FLAGS USED:
+-----------
+  --prompt    Sends the prompt non-interactively (no chat window needed)
+  --yolo      Enables all permissions — Copilot runs fully autonomous,
+              no confirmation prompts for any tool, file, or command
+  --allow-all-paths  Allows Copilot to access files outside the project dir
+
+EXAMPLE OUTPUT (in log):
+-------------------------
+  ======================================
+  Started: Sun Feb 22 01:00:01 EST 2026
+  [Copilot analyzes codebase...]
+  [Copilot edits API routes, adds mobile CSS, improves scanner logic...]
+  Finished: Sun Feb 22 01:47:23 EST 2026 (exit code: 0)
+
+RUNS AT:
+--------
+  Every odd hour: 1am, 3am, 5am, 7am, 9am, 11am, 1pm, 3pm, 5pm, 7pm, 9pm, 11pm
+
+
+════════════════════════════════════════════════════
+  SCRIPT 2 — copilot-audit.sh
+  "GUI Audit & Security Fix Prompt"
+════════════════════════════════════════════════════
+
+WHAT IT DOES:
+-------------
+This script tells Copilot to act as a penetration testing auditor.
+It tests every button, page, form, and feature in the GUI, compares the
+project against top security-scan platforms, identifies gaps, and then FIXES
+everything automatically. It also improves the scanner and ensures
+professional-grade output like cybri.com, security-scan-tools.com, getastra.com,
+and attaxion.com.
+
+THE PROMPT (summary of 7 sections):
+-------------------------------------
+1. GUI AUDIT
+   Tests every page, button, form, link, modal, tab, and interactive element.
+   Finds and fixes broken interactions, missing feedback, confusing UX.
+
+2. FEATURE PARITY
+   Compares against: cybri.com, security-scan-tools.com, getastra.com, attaxion.com.
+   Implements missing features such as:
+     - Full vulnerability scanner dashboard
+     - Asset discovery & subdomain enumeration
+     - Port scanning & SSL/TLS checks
+     - CVE lookup & OWASP Top 10 checks
+     - API security testing
+     - Report generation (PDF/HTML)
+     - Scheduled scans & real-time alerts
+     - Risk scoring & attack surface mapping
+     - Remediation guidance
+
+3. SCANNER IMPROVEMENTS
+   Makes the scanner more accurate, faster, and comprehensive.
+   Adds more scan modules, improves detection logic, reduces false positives,
+   adds CVSS severity scoring (Critical / High / Medium / Low / Info).
+
+4. INFORMATION & CONTENT
+   Reviews all pages for accuracy and professionalism.
+   Fixes empty states, placeholder text, and missing descriptions.
+   Ensures every scan result includes: name, description, severity,
+   affected component, proof of concept, and remediation steps.
+
+5. MOBILE RESPONSIVENESS
+   Tests and fixes all pages for mobile and tablet viewports.
+   Ensures touch-friendly controls, proper sizing, no horizontal scrolling.
+
+6. ARCHITECTURE & PERFORMANCE
+   Reviews API endpoints, DB queries, and backend logic.
+   Fixes slow queries, missing indexes, unhandled errors, insecure endpoints,
+   missing auth checks, and CORS misconfigurations.
+
+7. AUTO-FIX
+   Does not just report issues — implements all fixes directly in the codebase.
+
+HOW IT WORKS:
+-------------
+- Copilot reads the entire project codebase in /opt/yourproject
+- It simulates an audit across all 7 categories above
+- It makes code changes directly (no confirmation needed due to --yolo)
+- All fixes are saved to disk automatically
+- Everything is logged to: /opt/copilot-hive/copilot-audit.log
+
+FLAGS USED:
+-----------
+  --prompt    Sends the prompt non-interactively (no chat window needed)
+  --yolo      Enables all permissions — Copilot runs fully autonomous,
+              no confirmation prompts for any tool, file, or command
+  --allow-all-paths  Allows Copilot to access files outside the project dir
+
+EXAMPLE OUTPUT (in log):
+-------------------------
+  ======================================
+  Audit Started: Sun Feb 22 02:00:01 EST 2026
+  [Copilot scans all GUI pages...]
+  [Copilot detects missing CVE lookup feature — implements it...]
+  [Copilot fixes broken mobile navbar...]
+  [Copilot adds PDF report export...]
+  [Copilot fixes insecure API endpoint /api/scan...]
+  Audit Finished: Sun Feb 22 02:52:44 EST 2026 (exit code: 0)
+
+RUNS AT:
+--------
+  Every even hour: 2am, 4am, 6am, 8am, 10am, 12pm, 2pm, 4pm, 6pm, 8pm, 10pm
+
+
+════════════════════════════════════════════════════
+  TOGETHER — How both scripts work as a cycle
+════════════════════════════════════════════════════
+
+  1:00 AM  → copilot-improve.sh   Adds & improves features
+  2:00 AM  → copilot-audit.sh     Audits everything improve script did + fixes
+  3:00 AM  → copilot-improve.sh   Improves again based on new state of code
+  4:00 AM  → copilot-audit.sh     Audits & fixes again
+  ...
+
+  This creates a continuous improvement loop:
+  Improve → Audit/Fix → Improve → Audit/Fix → ...
+
+  The improve script builds new capabilities.
+  The audit script validates, stress-tests, and fixes what was built.
+  Running together every hour means the project evolves 24/7 autonomously.
