@@ -172,38 +172,13 @@ This prevents the next agent from working against stale code when a deploy fails
 
 When a deploy breaks, the system follows an intelligent escalation path — the **agent that broke things gets first chance to fix it**:
 
-```
-  Deploy Failed!
-       │
-       ▼
-  ┌──────────────────────────────────┐
-  │  Re-run the SAME agent that      │  ← It has context about
-  │  pushed the bad code (attempt 1)  │    what it changed
-  └──────────────┬───────────────────┘
-                 │
-            Fixed? ─── Yes ──▶ ✅ Continue pipeline
-                 │
-                 No
-                 │
-  ┌──────────────┴───────────────────┐
-  │  Re-run same agent (attempt 2)    │
-  └──────────────┬───────────────────┘
-                 │
-            Fixed? ─── Yes ──▶ ✅ Continue pipeline
-                 │
-                 No (escalate!)
-                 │
-  ┌──────────────▼───────────────────┐
-  │  🚑 EMERGENCY FIXER              │
-  │                                   │
-  │  Gets full diagnostics:           │
-  │  • Docker container logs          │
-  │  • Container health status        │
-  │  • HTTP response codes            │
-  │  • GitHub Actions build logs      │
-  │  • What the previous agent tried  │
-  └───────────────────────────────────┘
-```
+<div align="center">
+<img src="assets/failure-coordination.svg" alt="Failure Coordination" width="100%">
+</div>
+
+<br/>
+
+> **Key insight:** The agent that pushed the bad code has the most context about what changed — it's the best candidate to fix it. Emergency Fixer is the last resort, armed with full diagnostics.
 
 ---
 
