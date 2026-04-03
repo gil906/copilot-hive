@@ -26,3 +26,4 @@ ideas/*_latest.md
 .DS_Store
 Thumbs.db
 .npmrc
+__pycache__/
