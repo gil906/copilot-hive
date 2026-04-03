@@ -5,7 +5,8 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const { URL } = require('url');
-const { spawn } = require('child_process');
+const { spawn, execSync } = require('child_process');
+const net = require('net');
 
 const PORT = 9096;
 const HIVE_DIR = __dirname;
@@ -219,6 +220,22 @@ button{cursor:pointer;font-family:inherit}
 .stats-bar{background:linear-gradient(90deg,rgba(0,212,255,.06),rgba(124,58,237,.06));border-bottom:1px solid var(--border);padding:10px 32px;display:flex;gap:24px;align-items:center;font-size:.82rem;color:var(--muted)}
 .stat-item{display:flex;align-items:center;gap:6px}
 .stat-value{color:var(--text);font-weight:700}
+
+/* Folder Picker */
+.folder-picker{max-height:200px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;margin-top:6px;background:#050810}
+.folder-item{display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;border-bottom:1px solid rgba(45,53,85,.4);font-size:.84rem;transition:background .15s}
+.folder-item:hover{background:rgba(0,212,255,.08)}
+.folder-item.registered{opacity:.45;cursor:default}
+.folder-item .folder-icon{font-size:1rem}
+.folder-item .folder-name{font-weight:600;flex:1}
+.folder-item .folder-tech{display:flex;gap:4px}
+.folder-item .tech-tag{padding:1px 6px;border-radius:4px;font-size:.68rem;font-weight:600;background:rgba(124,58,237,.15);color:var(--purple)}
+.folder-item .tech-tag.git{background:rgba(239,68,68,.12);color:var(--error)}
+.folder-item .registered-tag{font-size:.7rem;color:var(--muted);font-style:italic}
+.discover-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border:1px dashed var(--border);border-radius:8px;background:transparent;color:var(--accent);font-size:.82rem;cursor:pointer;transition:all .2s;margin-top:6px}
+.discover-btn:hover{border-color:var(--accent);background:rgba(0,212,255,.06)}
+.auto-port-btn{padding:4px 10px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--accent);font-size:.75rem;cursor:pointer;transition:all .2s;margin-left:6px}
+.auto-port-btn:hover{border-color:var(--accent);background:rgba(0,212,255,.08)}
 </style>
 </head>
 <body>
@@ -522,8 +539,9 @@ function showAddModal() {
 
       <div id="source-local">
         <div class="field">
-          <label>Local Path *</label>
+          <label>Local Path * <button type="button" class="discover-btn" onclick="discoverFolders()">🔍 Auto-discover projects</button></label>
           <input type="text" id="f-path" placeholder="/opt/my-saas-app">
+          <div id="folder-picker" style="display:none"></div>
         </div>
       </div>
       <div id="source-github" style="display:none">
@@ -550,7 +568,7 @@ function showAddModal() {
           <input type="text" id="f-compose" placeholder="/opt/docker-compose/my-saas.yml">
         </div>
         <div class="field">
-          <label>Health Check URL</label>
+          <label>Health Check URL <button type="button" class="auto-port-btn" onclick="autoPort()">🎲 Auto-port</button></label>
           <input type="text" id="f-health" placeholder="http://localhost:8080/" value="http://localhost:8080/">
         </div>
       </div>
@@ -734,6 +752,61 @@ async function submitProject(e) {
   }
 }
 
+// ── Folder Auto-Discovery ─────────────────────────────────────────
+async function discoverFolders() {
+  const picker = document.getElementById('folder-picker');
+  if (!picker) return;
+  picker.style.display = '';
+  picker.innerHTML = '<div style="padding:12px;text-align:center"><div class="spinner"></div> Scanning folders…</div>';
+  try {
+    const data = await api('/api/discover-folders');
+    if (!data.folders || !data.folders.length) {
+      picker.innerHTML = '<div style="padding:12px;color:var(--muted)">No folders found in ' + esc(data.parent) + '</div>';
+      return;
+    }
+    let html = '';
+    for (const f of data.folders) {
+      const techTags = f.tech.map(t => '<span class="tech-tag' + (t==='Git'?' git':'') + '">' + t + '</span>').join('');
+      const gitTag = f.is_git ? '<span class="tech-tag git">Git</span>' : '';
+      if (f.registered) {
+        html += '<div class="folder-item registered" title="Already registered">';
+        html += '<span class="folder-icon">📁</span>';
+        html += '<span class="folder-name">' + esc(f.name) + '</span>';
+        html += '<span class="registered-tag">already added</span>';
+        html += '</div>';
+      } else {
+        html += '<div class="folder-item" onclick="selectFolder(\\'' + esc(f.path) + '\\',\\'' + esc(f.name) + '\\')">';
+        html += '<span class="folder-icon">📂</span>';
+        html += '<span class="folder-name">' + esc(f.name) + '</span>';
+        html += '<div class="folder-tech">' + gitTag + techTags + '</div>';
+        html += '</div>';
+      }
+    }
+    picker.innerHTML = '<div class="folder-picker">' + html + '</div>';
+  } catch { picker.innerHTML = '<div style="padding:12px;color:var(--error)">Discovery failed</div>'; }
+}
+
+function selectFolder(folderPath, folderName) {
+  document.getElementById('f-path').value = folderPath;
+  const nameField = document.getElementById('f-name');
+  if (!nameField.value) {
+    // Auto-fill name from folder (capitalize, replace hyphens)
+    nameField.value = folderName.replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    autoSlug();
+  }
+  document.getElementById('folder-picker').style.display = 'none';
+}
+
+// ── Auto-Port ─────────────────────────────────────────────────────
+async function autoPort() {
+  try {
+    const data = await api('/api/next-port');
+    const healthField = document.getElementById('f-health');
+    if (healthField) healthField.value = 'http://localhost:' + data.port + '/';
+    toast('Port ' + data.port + ' assigned');
+  } catch {}
+}
+
 // ── Project Selector ──────────────────────────────────────────────
 let selectedProject = '';
 let agentPollTimer = null;
@@ -858,6 +931,63 @@ async function handleRequest(req, res) {
   if (method === 'GET' && pathname === '/') {
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     return res.end(getHTML());
+  }
+
+  // ── GET /api/discover-folders ─────────────────────────────────────
+  // Lists directories one level up from HIVE_DIR for project autodiscovery
+  if (method === 'GET' && pathname === '/api/discover-folders') {
+    const parentDir = path.dirname(HIVE_DIR);
+    try {
+      const entries = fs.readdirSync(parentDir, { withFileTypes: true });
+      const folders = entries
+        .filter(e => e.isDirectory() && !e.name.startsWith('.'))
+        .map(e => {
+          const fullPath = path.join(parentDir, e.name);
+          const isGit = fs.existsSync(path.join(fullPath, '.git'));
+          const hasPkg = fs.existsSync(path.join(fullPath, 'package.json'));
+          const hasReqs = fs.existsSync(path.join(fullPath, 'requirements.txt'));
+          const hasCargo = fs.existsSync(path.join(fullPath, 'Cargo.toml'));
+          const hasGoMod = fs.existsSync(path.join(fullPath, 'go.mod'));
+          const hasDockerfile = fs.existsSync(path.join(fullPath, 'Dockerfile'));
+          const hasCompose = fs.existsSync(path.join(fullPath, 'docker-compose.yml')) || fs.existsSync(path.join(fullPath, 'docker-compose.yaml'));
+          let tech = [];
+          if (hasPkg) tech.push('Node.js');
+          if (hasReqs) tech.push('Python');
+          if (hasCargo) tech.push('Rust');
+          if (hasGoMod) tech.push('Go');
+          if (hasDockerfile) tech.push('Docker');
+          if (hasCompose) tech.push('Compose');
+          // Check if already registered
+          const registry = readRegistry();
+          const registered = registry.some(r => r.path === fullPath);
+          return { name: e.name, path: fullPath, is_git: isGit, tech, has_dockerfile: hasDockerfile, has_compose: hasCompose, registered };
+        })
+        .sort((a, b) => a.name.localeCompare(b.name));
+      return json(res, 200, { parent: parentDir, folders });
+    } catch (err) {
+      return json(res, 500, { error: 'Cannot read directory: ' + parentDir });
+    }
+  }
+
+  // ── GET /api/next-port ──────────────────────────────────────────
+  // Finds an available TCP port on the server
+  if (method === 'GET' && pathname === '/api/next-port') {
+    const findPort = () => new Promise((resolve, reject) => {
+      const srv = net.createServer();
+      srv.listen(0, '0.0.0.0', () => {
+        const port = srv.address().port;
+        srv.close(() => resolve(port));
+      });
+      srv.on('error', reject);
+    });
+    try {
+      const port = await findPort();
+      return json(res, 200, { port });
+    } catch {
+      // Fallback: pick random in 10000-60000 range
+      const port = 10000 + Math.floor(Math.random() * 50000);
+      return json(res, 200, { port, fallback: true });
+    }
   }
 
   // ── GET /api/projects ────────────────────────────────────────────
