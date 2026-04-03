@@ -1013,6 +1013,12 @@ async function handleRequest(req, res) {
     const id = body.id;
     if (!id || !body.name) return json(res, 400, { error: 'id and name are required' });
 
+    // Check for duplicate project
+    const existingRegistry = readRegistry();
+    if (existingRegistry.some(e => e.id === id)) {
+      return json(res, 409, { error: 'Project "' + id + '" already exists' });
+    }
+
     const projectDir = path.join(PROJECTS_DIR, id);
     const ideasDir = path.join(projectDir, 'ideas');
 
@@ -1080,10 +1086,18 @@ async function handleRequest(req, res) {
     const id = projectMatch[1];
     const sub = projectMatch[2] || '';
 
+    // For sub-routes (not DELETE or POST create), verify project exists
+    if (sub && sub !== '' && method === 'GET') {
+      const _reg = readRegistry();
+      if (!_reg.some(e => e.id === id)) return json(res, 404, { error: 'Project not found' });
+    }
+
     // GET /api/projects/:id
     if (method === 'GET' && sub === '') {
       const cfg = readProjectConfig(id);
-      if (!cfg) return json(res, 404, { error: 'Project not found' });
+      const registry = readRegistry();
+      const inRegistry = registry.some(e => e.id === id);
+      if (!cfg || !inRegistry) return json(res, 404, { error: 'Project not found' });
       return json(res, 200, cfg);
     }
 
@@ -1146,6 +1160,10 @@ async function handleRequest(req, res) {
       const agent = body.agent;
       if (!agent) return json(res, 400, { error: 'agent is required' });
 
+      // Verify project exists in registry
+      const registry = readRegistry();
+      if (!registry.some(e => e.id === id)) return json(res, 404, { error: 'Project not found' });
+
       const agentScript = path.join(HIVE_DIR, 'run-agent.sh');
       if (!fs.existsSync(agentScript)) {
         return json(res, 500, { error: 'run-agent.sh not found' });
@@ -1161,6 +1179,10 @@ async function handleRequest(req, res) {
 
     // GET /api/projects/:id/agents
     if (method === 'GET' && sub === '/agents') {
+      // Verify project exists in registry
+      const registry = readRegistry();
+      if (!registry.some(e => e.id === id)) return json(res, 404, { error: 'Project not found' });
+
       let agentData = {};
 
       const projectStatusFile = path.join(PROJECTS_DIR, id, 'ideas', 'agent_status.json');

@@ -1,1 +1,11 @@
-{"projects":[],"schema_version":1}
+{
+  "projects": [
+    {
+      "id": "MyProject",
+      "name": "Upper",
+      "path": "/tmp",
+      "description": "t"
+    }
+  ],
+  "schema_version": 1
+}

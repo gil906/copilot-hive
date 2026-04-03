@@ -1,0 +1,18 @@
+{
+  "id": "stress-2",
+  "name": "Stress 2",
+  "path": "/tmp/s2",
+  "github_repo": "",
+  "description": "stress test 2",
+  "compose_file": "",
+  "containers": {},
+  "health_url": "http://localhost:8080/",
+  "agents": [
+    "improve",
+    "audit"
+  ],
+  "setup_status": "complete",
+  "created_at": "2026-04-03T22:53:39.062Z",
+  "competitors": [],
+  "setup_step": "Done (no competitor data discovered)"
+}
