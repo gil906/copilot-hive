@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Load central configuration
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "${SCRIPT_DIR}/config.sh"
+
 # ── Config ────────────────────────────────────────────────────────────────────
 PROJECT_DIR="/opt/yourproject"
 LOG_FILE="/opt/copilot-hive/copilot-emergencyfixer.log"
@@ -84,7 +88,10 @@ elif '$st' == 'idle':
 if '$ec':
     try: a['last_exit_code'] = int('$ec')
     except: pass
-with open(f, 'w') as fh: json.dump(data, fh, indent=2)
+import tempfile, os as _os
+tmp = f + '.tmp'
+with open(tmp, 'w') as fh: json.dump(data, fh, indent=2)
+_os.replace(tmp, f)
 " 2>/dev/null
 }
 

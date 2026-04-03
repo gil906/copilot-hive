@@ -1,4 +1,9 @@
 #!/bin/bash
+
+# Load central configuration
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "${SCRIPT_DIR}/config.sh"
+
 # ══════════════════════════════════════════════════════════════════════
 #  WEBSITE DESIGNER — Research agent (READ-ONLY)
 #  Analyzes public website UX, animations, landing pages, conversions

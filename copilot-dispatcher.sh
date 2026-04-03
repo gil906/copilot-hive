@@ -1,4 +1,9 @@
 #!/bin/bash
+
+# Load central configuration
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "${SCRIPT_DIR}/config.sh"
+
 # ══════════════════════════════════════════════════════════════════════
 #  Pipeline Dispatcher — Event-driven agent chaining
 #  Runs every 1 min via cron. Chains: improve → deploy → audit → deploy → ...

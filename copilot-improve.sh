@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Load central configuration
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "${SCRIPT_DIR}/config.sh"
+
 # ── Config ────────────────────────────────────────────────────────────────────
 PROJECT_DIR="/opt/yourproject"
 LOG_FILE="/opt/copilot-hive/copilot-improve.log"
@@ -46,7 +50,10 @@ ec = '${4}'
 if ec:
     try: a['last_exit_code'] = int(ec)
     except: pass
-with open(f, 'w') as fh: json.dump(data, fh, indent=2)
+import tempfile, os as _os
+tmp = f + '.tmp'
+with open(tmp, 'w') as fh: json.dump(data, fh, indent=2)
+_os.replace(tmp, f)
 " 2>/dev/null
 }
 
@@ -166,6 +173,7 @@ IMPORTANT RULES:
 - Implement changes directly — do not just suggest or describe them
 - Think big but ship incrementally — each run should deliver tangible improvements
 - READ the ideas files from the Radical, Lawyer, and Compliance agents (provided below) and implement their best suggestions
+- IMPORTANT: Before implementing any idea, check if a similar feature already exists in the codebase or was recently implemented (see implemented.log). Skip duplicate or near-duplicate ideas across different research agent files. Prioritize unique, high-impact ideas.
 - Prioritize HIGH PRIORITY items from all agents, but use your judgment on what to build each cycle
 - Implement AT LEAST 5-8 ideas or improvements per run — you have time, be productive
 - Mix big features (1-2 per run) with smaller improvements (4-6 quick wins: UI polish, new endpoints, scanner tweaks, content fixes)
@@ -203,6 +211,8 @@ LAST_MSG=$(git -C "$PROJECT_DIR" log -1 --pretty=format:"%s" 2>/dev/null || echo
 # ── Read ideas from research agents ──────────────────────────────────
 RADICAL_IDEAS=""
 if [ -f "${IDEAS_DIR}/radical_latest.md" ]; then
+  # Load full idea files (use cat instead of head -200 for complete context)
+  # NOTE: Consider using --add-file flag with Copilot CLI for better handling of large files
   RADICAL_IDEAS=$(cat "${IDEAS_DIR}/radical_latest.md" 2>/dev/null)
   echo "Loaded Radical Restructure ideas ($(wc -l < "${IDEAS_DIR}/radical_latest.md") lines)" >> "$LOG_FILE"
 fi
@@ -403,6 +413,12 @@ if git -C "$PROJECT_DIR" status --porcelain | grep -q .; then
         *.js)
           node --check "$filepath" 2>/dev/null || {
             echo "⚠ Syntax error in $f — skipping push" >> "$LOG_FILE"
+            SYNTAX_OK=false
+          }
+          ;;
+        *.sh)
+          bash -n "$filepath" 2>/dev/null || {
+            echo "⚠ Shell syntax error in $f — skipping push" >> "$LOG_FILE"
             SYNTAX_OK=false
           }
           ;;

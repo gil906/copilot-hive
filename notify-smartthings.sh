@@ -1,4 +1,9 @@
 #!/bin/bash
+
+# Load central configuration
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "${SCRIPT_DIR}/config.sh"
+
 # Sends a notification via SmartThings by toggling the CopilotAlert switch.
 # Usage: notify-smartthings.sh "Your message here"
 

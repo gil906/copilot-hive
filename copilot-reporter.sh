@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Load central configuration
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "${SCRIPT_DIR}/config.sh"
+
 # ── Config ────────────────────────────────────────────────────────────────────
 PROJECT_DIR="/opt/yourproject"
 LOG_FILE="/opt/copilot-hive/copilot-reporter.log"
@@ -41,7 +45,10 @@ elif '$st' == 'idle':
 if '$ec':
     try: a['last_exit_code'] = int('$ec')
     except: pass
-with open(f, 'w') as fh: json.dump(data, fh, indent=2)
+import tempfile, os as _os
+tmp = f + '.tmp'
+with open(tmp, 'w') as fh: json.dump(data, fh, indent=2)
+_os.replace(tmp, f)
 " 2>/dev/null
 }
 
@@ -199,6 +206,28 @@ FINDING_COUNTS=$($DB_CMD -c "
   FROM scan_reports WHERE ${DATE_FILTER}
   ORDER BY created_at DESC LIMIT 10;
 " 2>/dev/null | tr '\n' ', ' || echo "none")
+
+# ── Generate HTML report from template ────────────────────────────────────────
+generate_html_report() {
+  local period="$1" git_stats="$2" container_stats="$3" agent_stats="$4"
+  cat <<HTMLEOF
+<!DOCTYPE html>
+<html><head><style>
+body{font-family:sans-serif;background:#1a1a2e;color:#e0e0e0;padding:20px}
+h1{color:#00d4ff}h2{color:#7c3aed;border-bottom:1px solid #333;padding-bottom:8px}
+table{border-collapse:collapse;width:100%;margin:10px 0}
+td,th{border:1px solid #333;padding:8px;text-align:left}
+th{background:#2d2d44}.ok{color:#22c55e}.warn{color:#f59e0b}.err{color:#ef4444}
+.card{background:#2d2d44;border-radius:8px;padding:16px;margin:10px 0}
+</style></head><body>
+<h1>🐝 Copilot Hive — ${period} Report</h1>
+<p>Generated: $(date '+%Y-%m-%d %H:%M UTC')</p>
+<div class="card"><h2>📊 Git Activity</h2><pre>${git_stats}</pre></div>
+<div class="card"><h2>🐳 Container Status</h2><pre>${container_stats}</pre></div>
+<div class="card"><h2>🤖 Agent Activity</h2><pre>${agent_stats}</pre></div>
+</body></html>
+HTMLEOF
+}
 
 PROMPT="You are the REPORTER agent for Your Project (yourproject.example.com). Your job is to compose a professional ${PERIOD} summary email.
 

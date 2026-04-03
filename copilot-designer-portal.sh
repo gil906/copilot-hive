@@ -1,4 +1,9 @@
 #!/bin/bash
+
+# Load central configuration
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "${SCRIPT_DIR}/config.sh"
+
 # ══════════════════════════════════════════════════════════════════════
 #  PORTAL DESIGNER — Research agent (READ-ONLY)
 #  Analyzes the logged-in portal/dashboard UX, admin panel, user flows
