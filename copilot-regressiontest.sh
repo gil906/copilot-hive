@@ -6,12 +6,12 @@ source "${SCRIPT_DIR}/config.sh"
 
 # ── Config ────────────────────────────────────────────────────────────────────
 PROJECT_DIR="${PROJECT_DIR:-/opt/yourproject}"
-LOG_FILE="/opt/copilot-hive/copilot-regressiontest.log"
+LOG_FILE="${LOG_FILE:-/opt/copilot-hive/copilot-regressiontest.log}"
 NOTIFY="/opt/copilot-hive/notify-smartthings.sh"
-CHANGELOG_DIR="/opt/copilot-hive/changelogs"
+CHANGELOG_DIR="${CHANGELOG_DIR:-/opt/copilot-hive/changelogs}"
 
-API_BASE="http://localhost:8080"
-WEB_BASE="http://localhost:8080"
+API_BASE="${HEALTH_URL:-http://localhost:8080}"
+WEB_BASE="${HEALTH_URL:-http://localhost:8080}"
 
 # ── Run ───────────────────────────────────────────────────────────────────────
 echo "======================================" >> "$LOG_FILE"

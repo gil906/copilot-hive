@@ -14,23 +14,23 @@ fi
 
 # ── Config ────────────────────────────────────────────────────────────────────
 PROJECT_DIR="${PROJECT_DIR:-/opt/yourproject}"
-LOG_FILE="/opt/copilot-hive/copilot-improve.log"
+LOG_FILE="${LOG_FILE:-/opt/copilot-hive/copilot-improve.log}"
 COMPOSE_FILE="${COMPOSE_FILE:-/opt/docker-compose/yourproject.yml}"
 NOTIFY="/opt/copilot-hive/notify-smartthings.sh"
-CHANGELOG_DIR="/opt/copilot-hive/changelogs"
-IDEAS_DIR="/opt/copilot-hive/ideas"
+CHANGELOG_DIR="${CHANGELOG_DIR:-/opt/copilot-hive/changelogs}"
+IDEAS_DIR="${IDEAS_DIR:-/opt/copilot-hive/ideas}"
 COPILOT="/usr/local/bin/copilot"
 
 # ── Pause check ───────────────────────────────────────────────────────────────
-PAUSE_FILE="/opt/copilot-hive/.agents-paused"
-AGENT_PAUSE_FILE="/opt/copilot-hive/.agent-paused-improve"
+PAUSE_FILE="${PAUSE_FILE:-/opt/copilot-hive/.agents-paused}"
+AGENT_PAUSE_FILE="${AGENT_PAUSE_FILE:-/opt/copilot-hive/.agent-paused-improve}"
 if [ -f "$PAUSE_FILE" ] || [ -f "$AGENT_PAUSE_FILE" ]; then
   echo "$(date) — SKIPPED: Agent paused by admin" >> "$LOG_FILE"
   exit 0
 fi
 
 # ── Agent Status Helper ──────────────────────────────────────────────────────
-STATUS_FILE="/opt/copilot-hive/ideas/agent_status.json"
+STATUS_FILE="${STATUS_FILE:-/opt/copilot-hive/ideas/agent_status.json}"
 update_agent_status() {
   local agent_id="$1"
   local status="$2"
@@ -489,7 +489,7 @@ else
 fi
 
 # ── Report to pipeline dispatcher ────────────────────────────────────
-PIPELINE_FILE="/opt/copilot-hive/.pipeline-status"
+PIPELINE_FILE="${PIPELINE_FILE:-/opt/copilot-hive/.pipeline-status}"
 if [ -f "$PIPELINE_FILE" ]; then
   source "$PIPELINE_FILE"
   if [ "$PUSHED" = "yes" ]; then

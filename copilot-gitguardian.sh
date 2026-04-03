@@ -6,9 +6,9 @@ source "${SCRIPT_DIR}/config.sh"
 
 # ── Config ────────────────────────────────────────────────────────────────────
 PROJECT_DIR="${PROJECT_DIR:-/opt/yourproject}"
-LOG_FILE="/opt/copilot-hive/copilot-gitguardian.log"
+LOG_FILE="${LOG_FILE:-/opt/copilot-hive/copilot-gitguardian.log}"
 NOTIFY="/opt/copilot-hive/notify-smartthings.sh"
-CHANGELOG_DIR="/opt/copilot-hive/changelogs"
+CHANGELOG_DIR="${CHANGELOG_DIR:-/opt/copilot-hive/changelogs}"
 
 # ── Run ───────────────────────────────────────────────────────────────────────
 echo "======================================" >> "$LOG_FILE"

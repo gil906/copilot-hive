@@ -11,28 +11,28 @@ source "${SCRIPT_DIR}/config.sh"
 # ══════════════════════════════════════════════════════════════════════
 
 PROJECT_DIR="${PROJECT_DIR:-/opt/yourproject}"
-LOG_FILE="/opt/copilot-hive/copilot-designer-web.log"
+LOG_FILE="${LOG_FILE:-/opt/copilot-hive/copilot-designer-web.log}"
 NOTIFY="/opt/copilot-hive/notify-smartthings.sh"
-IDEAS_DIR="/opt/copilot-hive/ideas"
+IDEAS_DIR="${IDEAS_DIR:-/opt/copilot-hive/ideas}"
 COPILOT="/usr/local/bin/copilot"
 
 mkdir -p "$IDEAS_DIR"
 
-PAUSE_FILE="/opt/copilot-hive/.agents-paused"
-AGENT_PAUSE_FILE="/opt/copilot-hive/.agent-paused-designer-web"
+PAUSE_FILE="${PAUSE_FILE:-/opt/copilot-hive/.agents-paused}"
+AGENT_PAUSE_FILE="${AGENT_PAUSE_FILE:-/opt/copilot-hive/.agent-paused-designer-web}"
 if [ -f "$PAUSE_FILE" ] || [ -f "$AGENT_PAUSE_FILE" ]; then
   echo "$(date) — SKIPPED: Agent paused" >> "$LOG_FILE"
   exit 0
 fi
 
 # Prevent concurrent runs of same agent
-acquire_agent_lock "designer-web" || { echo "$(date) — SKIPPED: Another instance already running" >> "$LOG_FILE"; exit 0; }
+acquire_agent_lock "designer-web${PROJECT_ID:+-$PROJECT_ID}" || { echo "$(date) — SKIPPED: Another instance already running" >> "$LOG_FILE"; exit 0; }
 
 echo "======================================" >> "$LOG_FILE"
 echo "Website Designer Started: $(date)" >> "$LOG_FILE"
 
 # ── Urgent Admin Ideas Check ─────────────────────────────────────────────────
-_IDEAS_DIR="/opt/copilot-hive/ideas"
+_IDEAS_DIR="${IDEAS_DIR:-/opt/copilot-hive/ideas}"
 URGENT_IDEA=$(python3 -c "
 import json
 try:

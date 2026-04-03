@@ -1,26 +1,36 @@
 # ══════════════════════════════════════════════════════════════════════
-#  Copilot Hive — Crontab Schedule
+#  Copilot Hive — Crontab Schedule (Multi-Project)
 #  Install with: crontab crontab.example
 #  Or merge into existing: crontab -e
+#
+#  MULTI-PROJECT: Each research agent iterates over all registered
+#  projects using run-agent.sh. The dispatcher handles the pipeline
+#  for the default project. For per-project pipelines, call
+#  run-agent.sh with --project <id>.
 # ══════════════════════════════════════════════════════════════════════
 
-# Pipeline dispatcher — runs every minute, chains agents automatically
+# Pipeline dispatcher — runs every minute (default project pipeline)
 * * * * * /opt/copilot-hive/copilot-dispatcher.sh >> /opt/copilot-hive/copilot-dispatcher.log 2>&1
 
-# ── Research Agents (Specialists) — every hour, staggered ────────────
-0  * * * * /opt/copilot-hive/copilot-designer-web.sh >> /opt/copilot-hive/copilot-designer-web.log 2>&1
-5  * * * * /opt/copilot-hive/copilot-designer-portal.sh >> /opt/copilot-hive/copilot-designer-portal.log 2>&1
-10 * * * * /opt/copilot-hive/copilot-architect-api.sh >> /opt/copilot-hive/copilot-architect-api.log 2>&1
+# ── Research Agents (per-project) — every hour, staggered ────────────
+# These iterate over all registered projects automatically
+0  * * * * /opt/copilot-hive/run-all-projects.sh designer-web  >> /opt/copilot-hive/copilot-designer-web.log 2>&1
+5  * * * * /opt/copilot-hive/run-all-projects.sh designer-portal >> /opt/copilot-hive/copilot-designer-portal.log 2>&1
+10 * * * * /opt/copilot-hive/run-all-projects.sh architect-api >> /opt/copilot-hive/copilot-architect-api.log 2>&1
 
-# ── Research Agents (Strategic) — every 2 hours ──────────────────────
-15 */2 * * * /opt/copilot-hive/copilot-radical.sh >> /opt/copilot-hive/copilot-radical.log 2>&1
-20 */2 * * * /opt/copilot-hive/copilot-lawyer.sh >> /opt/copilot-hive/copilot-lawyer.log 2>&1
-25 */2 * * * /opt/copilot-hive/copilot-compliance.sh >> /opt/copilot-hive/copilot-compliance.log 2>&1
+# ── Research Agents (Strategic, per-project) — every 2 hours ─────────
+15 */2 * * * /opt/copilot-hive/run-all-projects.sh radical >> /opt/copilot-hive/copilot-radical.log 2>&1
+20 */2 * * * /opt/copilot-hive/run-all-projects.sh lawyer  >> /opt/copilot-hive/copilot-lawyer.log 2>&1
+25 */2 * * * /opt/copilot-hive/run-all-projects.sh compliance >> /opt/copilot-hive/copilot-compliance.log 2>&1
+
+# ── Pipeline Agents (per-project) — every 3 hours ───────────────────
+0 */3 * * *  /opt/copilot-hive/run-all-projects.sh improve >> /opt/copilot-hive/copilot-improve.log 2>&1
+30 */3 * * * /opt/copilot-hive/run-all-projects.sh audit   >> /opt/copilot-hive/copilot-audit.log 2>&1
 
 # ── Reporter — daily + weekly summaries ──────────────────────────────
-0 18 * * *   /opt/copilot-hive/copilot-reporter.sh daily >> /opt/copilot-hive/copilot-reporter.log 2>&1
-0 18 * * 0   /opt/copilot-hive/copilot-reporter.sh weekly >> /opt/copilot-hive/copilot-reporter.log 2>&1
+0 18 * * *   /opt/copilot-hive/run-all-projects.sh reporter daily  >> /opt/copilot-hive/copilot-reporter.log 2>&1
+0 18 * * 0   /opt/copilot-hive/run-all-projects.sh reporter weekly >> /opt/copilot-hive/copilot-reporter.log 2>&1
 
 # ── Security & Testing — daily at midnight ───────────────────────────
-0  0 * * *   /opt/copilot-hive/copilot-gitguardian.sh >> /opt/copilot-hive/copilot-gitguardian.log 2>&1
-30 0 * * *   /opt/copilot-hive/copilot-regressiontest.sh >> /opt/copilot-hive/copilot-regressiontest.log 2>&1
+0  0 * * *   /opt/copilot-hive/run-all-projects.sh gitguardian >> /opt/copilot-hive/copilot-gitguardian.log 2>&1
+30 0 * * *   /opt/copilot-hive/run-all-projects.sh regressiontest >> /opt/copilot-hive/copilot-regressiontest.log 2>&1

@@ -216,6 +216,9 @@ button{cursor:pointer;font-family:inherit}
 .agent-card-actions{margin-top:8px}
 .agent-card-actions button{padding:4px 10px;font-size:.72rem;border-radius:4px;background:rgba(124,58,237,.15);color:var(--purple);border:1px solid transparent;cursor:pointer;transition:all .2s}
 .agent-card-actions button:hover{border-color:var(--purple);background:rgba(124,58,237,.25)}
+.stats-bar{background:linear-gradient(90deg,rgba(0,212,255,.06),rgba(124,58,237,.06));border-bottom:1px solid var(--border);padding:10px 32px;display:flex;gap:24px;align-items:center;font-size:.82rem;color:var(--muted)}
+.stat-item{display:flex;align-items:center;gap:6px}
+.stat-value{color:var(--text);font-weight:700}
 </style>
 </head>
 <body>
@@ -229,6 +232,8 @@ button{cursor:pointer;font-family:inherit}
     <button class="btn btn-primary" onclick="showAddModal()">+ Add Project</button>
   </div>
 </header>
+
+<div id="stats-bar" class="stats-bar"></div>
 
 <div class="container" id="app"></div>
 <div class="toast-container" id="toasts"></div>
@@ -260,6 +265,7 @@ async function api(path, opts) {
 // ── Rendering ──────────────────────────────────────────────────────
 function render() {
   populateProjectSelector();
+  updateStatsBar();
   if (currentView === 'list') renderList();
   else if (currentView === 'detail') renderDetail();
 }
@@ -348,6 +354,9 @@ async function renderDetail() {
     </div>
 
     <div class="detail-section" style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn btn-sm btn-outline" onclick="showEditModal('\${esc(p.id)}')">✏️ Edit Project</button>
+      <button class="btn btn-sm btn-outline" onclick="rerunSetup('\${esc(p.id)}')">🔄 Re-run Setup</button>
+      <button class="btn btn-sm btn-outline" onclick="togglePause('\${esc(p.id)}')">⏸ Pause/Resume</button>
       <button class="btn btn-sm btn-danger" onclick="deleteProject('\${esc(p.id)}')">Delete Project</button>
     </div>
   </div>\`;
@@ -425,6 +434,39 @@ async function deleteProject(id) {
 async function runAgent(projectId, agent) {
   closeDropdowns();
   try { await api('/api/projects/' + projectId + '/run-agent', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({agent}) }); toast('Agent "' + agentLabel(agent) + '" launched'); } catch {}
+}
+
+async function rerunSetup(projectId) {
+  if (!confirm('Re-run competitor discovery for this project?')) return;
+  try { await api('/api/projects/' + projectId + '/rerun-setup', { method:'POST' }); toast('Setup re-started'); render(); } catch {}
+}
+
+async function togglePause(projectId) {
+  try {
+    const st = await api('/api/projects/' + projectId + '/pause-status');
+    if (st.paused) {
+      await api('/api/projects/' + projectId + '/resume', { method:'POST' });
+      toast('Project resumed');
+    } else {
+      await api('/api/projects/' + projectId + '/pause', { method:'POST' });
+      toast('Project paused');
+    }
+    render();
+  } catch {}
+}
+
+async function updateStatsBar() {
+  const bar = document.getElementById('stats-bar');
+  if (!bar) return;
+  let projects = [];
+  try { projects = await api('/api/projects'); } catch { return; }
+  const total = projects.length;
+  const active = projects.filter(p => p.setup_status === 'complete').length;
+  const setting = projects.filter(p => p.setup_status === 'running').length;
+  bar.innerHTML = '<div class="stat-item">📦 <span class="stat-value">' + total + '</span> project' + (total!==1?'s':'') + '</div>'
+    + '<div class="stat-item">✅ <span class="stat-value">' + active + '</span> active</div>'
+    + (setting ? '<div class="stat-item">🔄 <span class="stat-value">' + setting + '</span> setting up</div>' : '')
+    + '<div class="stat-item" style="margin-left:auto;font-size:.75rem;color:var(--muted)">🐝 Copilot Hive v1.7.0</div>';
 }
 
 function toggleDropdown(btn) {
@@ -540,6 +582,107 @@ function showAddModal() {
 }
 
 function closeModal() { const o = document.getElementById('modal-overlay'); if (o) o.remove(); }
+
+async function showEditModal(projectId) {
+  const existing = document.getElementById('modal-overlay');
+  if (existing) existing.remove();
+
+  let p;
+  try { p = await api('/api/projects/' + projectId); } catch { return; }
+
+  const allAgents = [
+    {id:'improve',label:'Feature Engineer'},{id:'audit',label:'Auditor'},
+    {id:'radical',label:'Radical Visionary'},{id:'lawyer',label:'Lawyer'},
+    {id:'compliance',label:'Compliance Officer'},{id:'designer-web',label:'Website Designer'},
+    {id:'designer-portal',label:'Portal Designer'},{id:'architect-api',label:'API Architect'}
+  ];
+  const enabledAgents = p.agents || [];
+  const containers = p.containers || {};
+
+  const overlay = document.createElement('div');
+  overlay.className = 'overlay';
+  overlay.id = 'modal-overlay';
+  overlay.innerHTML = \`
+  <div class="modal" onclick="event.stopPropagation()">
+    <h2>✏️ Edit Project — \${esc(p.name)}</h2>
+    <form id="editForm" onsubmit="submitEdit(event, '\${esc(projectId)}')">
+      <div class="field">
+        <label>Project Name</label>
+        <input type="text" id="e-name" required value="\${esc(p.name || '')}">
+      </div>
+      <div class="field">
+        <label>Path</label>
+        <input type="text" id="e-path" value="\${esc(p.path || '')}">
+      </div>
+      <div class="field">
+        <label>GitHub Repo</label>
+        <input type="text" id="e-repo" value="\${esc(p.github_repo || '')}">
+      </div>
+      <div class="field">
+        <label>Description</label>
+        <textarea id="e-desc">\${esc(p.description || '')}</textarea>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Docker Compose File</label>
+          <input type="text" id="e-compose" value="\${esc(p.compose_file || '')}">
+        </div>
+        <div class="field">
+          <label>Health Check URL</label>
+          <input type="text" id="e-health" value="\${esc(p.health_url || '')}">
+        </div>
+      </div>
+      <div class="field">
+        <label>Container Names</label>
+        <div class="field-row-3">
+          <div><label style="font-size:.75rem">API</label><input type="text" id="e-c-api" value="\${esc(containers.api || '')}"></div>
+          <div><label style="font-size:.75rem">Web</label><input type="text" id="e-c-web" value="\${esc(containers.web || '')}"></div>
+          <div><label style="font-size:.75rem">DB</label><input type="text" id="e-c-db" value="\${esc(containers.db || '')}"></div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Agents</label>
+        <div class="checks">
+          \${allAgents.map(a => '<label><input type="checkbox" name="eagents" value="'+a.id+'" '+(enabledAgents.includes(a.id)?'checked':'')+'>'+a.label+'</label>').join('')}
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline" onclick="closeModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+      </div>
+    </form>
+  </div>\`;
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+  document.body.appendChild(overlay);
+}
+
+async function submitEdit(e, projectId) {
+  e.preventDefault();
+  const containers = {};
+  const cApi = document.getElementById('e-c-api').value.trim();
+  const cWeb = document.getElementById('e-c-web').value.trim();
+  const cDb = document.getElementById('e-c-db').value.trim();
+  if (cApi) containers.api = cApi;
+  if (cWeb) containers.web = cWeb;
+  if (cDb) containers.db = cDb;
+  const agentEls = document.querySelectorAll('input[name=eagents]:checked');
+  const body = {
+    name: document.getElementById('e-name').value.trim(),
+    path: document.getElementById('e-path').value.trim(),
+    github_repo: document.getElementById('e-repo').value.trim(),
+    description: document.getElementById('e-desc').value.trim(),
+    compose_file: document.getElementById('e-compose').value.trim(),
+    health_url: document.getElementById('e-health').value.trim(),
+    containers,
+    agents: Array.from(agentEls).map(el => el.value)
+  };
+  try {
+    await api('/api/projects/' + projectId, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+    toast('Project updated');
+    closeModal();
+    render();
+  } catch {}
+}
 
 function autoSlug() {
   const name = document.getElementById('f-name').value;
@@ -705,7 +848,7 @@ async function handleRequest(req, res) {
   if (method === 'OPTIONS') {
     res.writeHead(204, {
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET,POST,DELETE,OPTIONS',
+      'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type'
     });
     return res.end();
@@ -825,6 +968,33 @@ async function handleRequest(req, res) {
       return json(res, 200, { logs: tail });
     }
 
+    // PUT /api/projects/:id — update project config
+    if (method === 'PUT' && sub === '') {
+      const body = await parseBody(req);
+      const cfg = readProjectConfig(id);
+      if (!cfg) return json(res, 404, { error: 'Project not found' });
+
+      // Merge updates
+      const updatable = ['name','path','github_repo','description','compose_file','containers','health_url','agents'];
+      for (const key of updatable) {
+        if (body[key] !== undefined) cfg[key] = body[key];
+      }
+      cfg.updated_at = new Date().toISOString();
+      writeProjectConfig(id, cfg);
+
+      // Update registry entry
+      const registry = readRegistry();
+      const entry = registry.find(e => e.id === id);
+      if (entry) {
+        if (body.name) entry.name = body.name;
+        if (body.path) entry.path = body.path;
+        if (body.description !== undefined) entry.description = body.description;
+        writeRegistry(registry);
+      }
+
+      return json(res, 200, cfg);
+    }
+
     // DELETE /api/projects/:id
     if (method === 'DELETE' && sub === '') {
       let registry = readRegistry();
@@ -895,6 +1065,45 @@ async function handleRequest(req, res) {
       }
 
       return json(res, 200, { agents: result, project_id: id });
+    }
+
+    // POST /api/projects/:id/rerun-setup
+    if (method === 'POST' && sub === '/rerun-setup') {
+      const cfg = readProjectConfig(id);
+      if (!cfg) return json(res, 404, { error: 'Project not found' });
+      cfg.setup_status = 'running';
+      cfg.setup_step = 'Re-running setup';
+      writeProjectConfig(id, cfg);
+      const setupScript = path.join(HIVE_DIR, 'setup-project.sh');
+      if (fs.existsSync(setupScript)) {
+        const logFile = path.join(PROJECTS_DIR, id, 'setup.log');
+        const logFd = fs.openSync(logFile, 'w');
+        const child = spawn(setupScript, [id], { cwd: HIVE_DIR, detached: true, stdio: ['ignore', logFd, logFd] });
+        child.unref();
+        child.on('exit', (code) => { fs.closeSync(logFd); try { const c = readProjectConfig(id); if(c){c.setup_status=code===0?'complete':'error';writeProjectConfig(id,c);} } catch{} });
+      }
+      return json(res, 200, { status: 'setup_restarted' });
+    }
+
+    // POST /api/projects/:id/pause
+    if (method === 'POST' && sub === '/pause') {
+      const pauseFile = path.join(PROJECTS_DIR, id, '.agents-paused');
+      fs.writeFileSync(pauseFile, new Date().toISOString(), 'utf8');
+      return json(res, 200, { status: 'paused', project: id });
+    }
+
+    // POST /api/projects/:id/resume
+    if (method === 'POST' && sub === '/resume') {
+      const pauseFile = path.join(PROJECTS_DIR, id, '.agents-paused');
+      try { fs.unlinkSync(pauseFile); } catch {}
+      return json(res, 200, { status: 'resumed', project: id });
+    }
+
+    // GET /api/projects/:id/pause-status
+    if (method === 'GET' && sub === '/pause-status') {
+      const pauseFile = path.join(PROJECTS_DIR, id, '.agents-paused');
+      const paused = fs.existsSync(pauseFile);
+      return json(res, 200, { paused, project: id });
     }
   }
 

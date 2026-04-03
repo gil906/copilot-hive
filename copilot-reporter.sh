@@ -6,8 +6,8 @@ source "${SCRIPT_DIR}/config.sh"
 
 # ── Config ────────────────────────────────────────────────────────────────────
 PROJECT_DIR="${PROJECT_DIR:-/opt/yourproject}"
-LOG_FILE="/opt/copilot-hive/copilot-reporter.log"
-CHANGELOG_DIR="/opt/copilot-hive/changelogs"
+LOG_FILE="${LOG_FILE:-/opt/copilot-hive/copilot-reporter.log}"
+CHANGELOG_DIR="${CHANGELOG_DIR:-/opt/copilot-hive/changelogs}"
 NOTIFY="/opt/copilot-hive/notify-smartthings.sh"
 COPILOT="/usr/local/bin/copilot"
 DB_USER="${DB_USER:-postgres}"
@@ -15,15 +15,15 @@ DB_NAME="${DB_NAME:-yourproject}"
 DB_CONTAINER="${DB_CONTAINER:-yourproject-db}"
 
 # ── Pause check ───────────────────────────────────────────────────────────────
-PAUSE_FILE="/opt/copilot-hive/.agents-paused"
-AGENT_PAUSE_FILE="/opt/copilot-hive/.agent-paused-reporter"
+PAUSE_FILE="${PAUSE_FILE:-/opt/copilot-hive/.agents-paused}"
+AGENT_PAUSE_FILE="${AGENT_PAUSE_FILE:-/opt/copilot-hive/.agent-paused-reporter}"
 if [ -f "$PAUSE_FILE" ] || [ -f "$AGENT_PAUSE_FILE" ]; then
   echo "$(date) — SKIPPED: Agent paused by admin" >> "$LOG_FILE"
   exit 0
 fi
 
 # ── Agent Status Helper ──────────────────────────────────────────────────────
-STATUS_FILE="/opt/copilot-hive/ideas/agent_status.json"
+STATUS_FILE="${STATUS_FILE:-/opt/copilot-hive/ideas/agent_status.json}"
 update_agent_status() {
   local st="$1" step="$2" ec="${3:-}"
   python3 -c "
@@ -55,7 +55,7 @@ _os.replace(tmp, f)
 update_agent_status "running" "Starting up"
 
 # ── Urgent Admin Ideas Check ─────────────────────────────────────────────────
-_IDEAS_DIR="/opt/copilot-hive/ideas"
+_IDEAS_DIR="${IDEAS_DIR:-/opt/copilot-hive/ideas}"
 URGENT_IDEA=$(python3 -c "
 import json
 try:
@@ -139,17 +139,17 @@ fi
 IMPROVE_RUNS=$(echo "$CHANGELOGS" | grep "improve_" | wc -l)
 AUDIT_RUNS=$(echo "$CHANGELOGS" | grep "audit_" | wc -l)
 EMERGENCY_RUNS=$(echo "$CHANGELOGS" | grep "emergencyfix_" | wc -l)
-RADICAL_RUNS=$(find /opt/copilot-hive/ideas -name "radical_*.md" -not -name "radical_latest.md" -mtime -${MTIME_DAYS:-1} 2>/dev/null | wc -l)
-LAWYER_RUNS=$(find /opt/copilot-hive/ideas -name "lawyer_*.md" -not -name "lawyer_latest.md" -mtime -${MTIME_DAYS:-1} 2>/dev/null | wc -l)
+RADICAL_RUNS=$(find ${IDEAS_DIR:-/opt/copilot-hive/ideas} -name "radical_*.md" -not -name "radical_latest.md" -mtime -${MTIME_DAYS:-1} 2>/dev/null | wc -l)
+LAWYER_RUNS=$(find ${IDEAS_DIR:-/opt/copilot-hive/ideas} -name "lawyer_*.md" -not -name "lawyer_latest.md" -mtime -${MTIME_DAYS:-1} 2>/dev/null | wc -l)
 TOTAL_RUNS=$((IMPROVE_RUNS + AUDIT_RUNS + EMERGENCY_RUNS + RADICAL_RUNS + LAWYER_RUNS))
-COMPLIANCE_RUNS=$(find /opt/copilot-hive/ideas -name "compliance_*.md" -not -name "compliance_latest.md" -mtime -${MTIME_DAYS:-1} 2>/dev/null | wc -l)
+COMPLIANCE_RUNS=$(find ${IDEAS_DIR:-/opt/copilot-hive/ideas} -name "compliance_*.md" -not -name "compliance_latest.md" -mtime -${MTIME_DAYS:-1} 2>/dev/null | wc -l)
 
 # Container status
-CONTAINER_STATUS=$(docker ps --filter name=yourproject --format "{{.Names}}: {{.Status}}" 2>/dev/null)
+CONTAINER_STATUS=$(docker ps --filter name=${CONTAINER_API:-yourproject} --format "{{.Names}}: {{.Status}}" 2>/dev/null)
 
 # Log stats
-IMPROVE_FAILURES=$(grep -c "IMPROVE failed" /opt/copilot-hive/copilot-improve.log 2>/dev/null || echo 0)
-AUDIT_FAILURES=$(grep -c "AUDIT failed" /opt/copilot-hive/copilot-audit.log 2>/dev/null || echo 0)
+IMPROVE_FAILURES=$(grep -c "IMPROVE failed" ${LOG_DIR:-/opt/copilot-hive}/copilot-improve.log 2>/dev/null || echo 0)
+AUDIT_FAILURES=$(grep -c "AUDIT failed" ${LOG_DIR:-/opt/copilot-hive}/copilot-audit.log 2>/dev/null || echo 0)
 
 # ── Database stats ─────────────────────────────────────────────────────
 DB_CMD="docker exec ${DB_CONTAINER} psql -U ${DB_USER} -d ${DB_NAME} -t -A"
@@ -191,7 +191,8 @@ th{background:#2d2d44}.ok{color:#22c55e}.warn{color:#f59e0b}.err{color:#ef4444}
 HTMLEOF
 }
 
-PROMPT="You are the REPORTER agent for the project at ${PROJECT_DIR}. Your job is to compose a professional ${PERIOD} summary email.
+PROMPT="You are the REPORTER agent for the project at ${PROJECT_DIR}. Your job is to compose a professional ${PERIOD} summary email.${PROJECT_ID:+
+PROJECT: ${PROJECT_NAME:-$PROJECT_ID} (ID: ${PROJECT_ID})}
 
 You have the mailreporter MCP tool available. Use the send_report tool to send the email.
 
@@ -205,7 +206,7 @@ Generate a RICH HTML email with the following data and send it using the send_re
 - Container health status
 - Color-coded: green for success, red for failures, blue for info
 
-EMAIL SUBJECT: ${PERIOD} Development Report — $(date '+%b %d, %Y')
+EMAIL SUBJECT: ${PROJECT_NAME:-Project} ${PERIOD} Report — $(date '+%b %d, %Y')
 
 DATA TO INCLUDE:
 

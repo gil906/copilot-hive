@@ -122,6 +122,12 @@ if desc:
   export IDEAS_DIR="${project_dir}/ideas"
   mkdir -p "$IDEAS_DIR"
 
+  # Per-project logs, changelogs, and state files
+  export LOG_DIR="${project_dir}/logs"
+  export CHANGELOG_DIR="${project_dir}/changelogs"
+  export STATUS_FILE="${project_dir}/ideas/agent_status.json"
+  mkdir -p "$LOG_DIR" "$CHANGELOG_DIR"
+
   # Set project-specific log suffix
   export PROJECT_LOG_SUFFIX="_${project_id}"
 

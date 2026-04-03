@@ -6,18 +6,18 @@ source "${SCRIPT_DIR}/config.sh"
 
 # ── Config ────────────────────────────────────────────────────────────────────
 PROJECT_DIR="${PROJECT_DIR:-/opt/yourproject}"
-LOG_FILE="/opt/copilot-hive/copilot-emergencyfixer.log"
+LOG_FILE="${LOG_FILE:-/opt/copilot-hive/copilot-emergencyfixer.log}"
 COMPOSE_FILE="${COMPOSE_FILE:-/opt/docker-compose/yourproject.yml}"
 NOTIFY="/opt/copilot-hive/notify-smartthings.sh"
-CHANGELOG_DIR="/opt/copilot-hive/changelogs"
+CHANGELOG_DIR="${CHANGELOG_DIR:-/opt/copilot-hive/changelogs}"
 COPILOT="/usr/local/bin/copilot"
 
 # Called with: copilot-emergencyfixer.sh <which_agent> <exit_code>
 FAILED_AGENT="${1:-unknown}"
 FAILED_EXIT_CODE="${2:-1}"
-FAILED_LOG="/opt/copilot-hive/copilot-${FAILED_AGENT}.log"
-ALERT_CONTEXT_FILE="/opt/copilot-hive/.alert-context.json"
-PIPELINE_STATUS="/opt/copilot-hive/.pipeline-status"
+FAILED_LOG="${LOG_DIR:-/opt/copilot-hive}/copilot-${FAILED_AGENT}.log"
+ALERT_CONTEXT_FILE="${ALERT_CONTEXT_FILE:-/opt/copilot-hive/.alert-context.json}"
+PIPELINE_STATUS="${PIPELINE_STATUS:-/opt/copilot-hive/.pipeline-status}"
 
 # ── Read alert context (written by health-webhook or dispatcher) ─────
 ALERT_CONTEXT=""
@@ -82,15 +82,15 @@ with open('${SCRIPTS_DIR}/.diagnostics.json', 'w') as f: json.dump(diag, f, inde
 " 2>/dev/null
 
 # ── Pause check ───────────────────────────────────────────────────────────────
-PAUSE_FILE="/opt/copilot-hive/.agents-paused"
-AGENT_PAUSE_FILE="/opt/copilot-hive/.agent-paused-emergencyfixer"
+PAUSE_FILE="${PAUSE_FILE:-/opt/copilot-hive/.agents-paused}"
+AGENT_PAUSE_FILE="${AGENT_PAUSE_FILE:-/opt/copilot-hive/.agent-paused-emergencyfixer}"
 if [ -f "$PAUSE_FILE" ] || [ -f "$AGENT_PAUSE_FILE" ]; then
   echo "$(date) — SKIPPED: Agent paused by admin" >> "$LOG_FILE"
   exit 0
 fi
 
 # ── Agent Status Helper ──────────────────────────────────────────────────────
-STATUS_FILE="/opt/copilot-hive/ideas/agent_status.json"
+STATUS_FILE="${STATUS_FILE:-/opt/copilot-hive/ideas/agent_status.json}"
 update_agent_status() {
   local st="$1" step="$2" ec="${3:-}"
   python3 -c "
@@ -122,7 +122,7 @@ _os.replace(tmp, f)
 update_agent_status "running" "Starting up"
 
 # ── Urgent Admin Ideas Check ─────────────────────────────────────────────────
-_IDEAS_DIR="/opt/copilot-hive/ideas"
+_IDEAS_DIR="${IDEAS_DIR:-/opt/copilot-hive/ideas}"
 URGENT_IDEA=$(python3 -c "
 import json
 try:

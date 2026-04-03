@@ -6,26 +6,26 @@ source "${SCRIPT_DIR}/config.sh"
 
 # ── Config ────────────────────────────────────────────────────────────────────
 PROJECT_DIR="${PROJECT_DIR:-/opt/yourproject}"
-LOG_FILE="/opt/copilot-hive/copilot-compliance.log"
+LOG_FILE="${LOG_FILE:-/opt/copilot-hive/copilot-compliance.log}"
 NOTIFY="/opt/copilot-hive/notify-smartthings.sh"
-IDEAS_DIR="/opt/copilot-hive/ideas"
+IDEAS_DIR="${IDEAS_DIR:-/opt/copilot-hive/ideas}"
 COPILOT="/usr/local/bin/copilot"
 
 mkdir -p "$IDEAS_DIR"
 
 # ── Pause check ───────────────────────────────────────────────────────────────
-PAUSE_FILE="/opt/copilot-hive/.agents-paused"
-AGENT_PAUSE_FILE="/opt/copilot-hive/.agent-paused-compliance"
+PAUSE_FILE="${PAUSE_FILE:-/opt/copilot-hive/.agents-paused}"
+AGENT_PAUSE_FILE="${AGENT_PAUSE_FILE:-/opt/copilot-hive/.agent-paused-compliance}"
 if [ -f "$PAUSE_FILE" ] || [ -f "$AGENT_PAUSE_FILE" ]; then
   echo "$(date) — SKIPPED: Agent paused by admin" >> "$LOG_FILE"
   exit 0
 fi
 
 # Prevent concurrent runs of same agent
-acquire_agent_lock "compliance" || { echo "$(date) — SKIPPED: Another instance already running" >> "$LOG_FILE"; exit 0; }
+acquire_agent_lock "compliance${PROJECT_ID:+-$PROJECT_ID}" || { echo "$(date) — SKIPPED: Another instance already running" >> "$LOG_FILE"; exit 0; }
 
 # ── Agent Status Helper ──────────────────────────────────────────────────────
-STATUS_FILE="/opt/copilot-hive/ideas/agent_status.json"
+STATUS_FILE="${STATUS_FILE:-/opt/copilot-hive/ideas/agent_status.json}"
 update_agent_status() {
   local st="$1" step="$2" ec="${3:-}"
   python3 -c "
@@ -54,7 +54,7 @@ with open(f, 'w') as fh: json.dump(data, fh, indent=2)
 update_agent_status "running" "Starting up"
 
 # ── Urgent Admin Ideas Check ─────────────────────────────────────────────────
-_IDEAS_DIR="/opt/copilot-hive/ideas"
+_IDEAS_DIR="${IDEAS_DIR:-/opt/copilot-hive/ideas}"
 URGENT_IDEA=$(python3 -c "
 import json
 try:

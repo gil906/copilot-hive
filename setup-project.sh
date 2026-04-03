@@ -34,6 +34,16 @@ with open('${PROJECT_FILE}', 'w') as f: json.dump(data, f, indent=2)
 " 2>/dev/null
 }
 
+# Reset status for re-runs
+python3 -c "
+import json
+try:
+    with open('${PROJECT_FILE}') as f: data = json.load(f)
+    data['setup_step'] = 'Initializing'
+    with open('${PROJECT_FILE}', 'w') as f: json.dump(data, f, indent=2)
+except: pass
+" 2>/dev/null
+
 update_setup_status "running" "Starting setup"
 echo "$(date) — Setup started for project: $PROJECT_ID" > "$SETUP_LOG"
 
@@ -69,6 +79,12 @@ if [ -n "$GITHUB_REPO" ] && [ ! -d "$SOURCE_PATH" ]; then
 elif [ ! -d "$SOURCE_PATH" ]; then
   echo "$(date) — WARNING: Source path does not exist: $SOURCE_PATH" >> "$SETUP_LOG"
   mkdir -p "$SOURCE_PATH"
+fi
+
+# Pull latest if repo already exists
+if [ -n "$GITHUB_REPO" ] && [ -d "$SOURCE_PATH/.git" ]; then
+  echo "$(date) — Pulling latest from $GITHUB_REPO" >> "$SETUP_LOG"
+  git -C "$SOURCE_PATH" pull origin main >> "$SETUP_LOG" 2>&1 || true
 fi
 
 # ── Step 2: Use Copilot CLI to analyze project and discover competitors ──
