@@ -13,6 +13,7 @@
 [![Ideas/Day](https://img.shields.io/badge/Ideas%2FDay-780+-orange?style=for-the-badge&logo=lightbulb&logoColor=white)](#-idea-flow)
 [![Monitoring](https://img.shields.io/badge/Uptime_Kuma-Self_Healing-blue?style=for-the-badge&logo=uptimekuma&logoColor=white)](#-health-monitoring--self-healing)
 [![Self-Healing](https://img.shields.io/badge/Deploys-Version_Verified-red?style=for-the-badge&logo=dependabot&logoColor=white)](#-version-verification)
+[![Platform](https://img.shields.io/badge/Platform-Linux_|_macOS_|_WSL_|_Docker-teal?style=for-the-badge&logo=docker&logoColor=white)](#-supported-platforms)
 
 <br/>
 
@@ -380,6 +381,27 @@ copilot --deny-tool "bash(git push*)" \
 0 18 * * *    copilot-reporter.sh daily
 0 18 * * 0    copilot-reporter.sh weekly
 ```
+
+---
+
+## 🖥️ Supported Platforms
+
+| Platform | Status | Install Method | Scheduling |
+|:---------|:-------|:---------------|:-----------|
+| 🐧 **Linux** (Ubuntu, Debian, etc.) | ✅ Full support | Native or Docker | cron |
+| 🍎 **macOS** (Intel & Apple Silicon) | ✅ Full support | Native or Docker Desktop | launchd |
+| 🪟 **WSL 2** (Windows) | ✅ Full support | Native (in WSL) or Docker Desktop | cron |
+| 🐳 **Docker Desktop** | ✅ Full support | `docker compose up -d` | Built-in |
+| 🍓 **Raspberry Pi** (ARM64) | ✅ Full support | Native | cron |
+
+> **Windows native** is not supported — use WSL 2 or Docker Desktop instead.
+
+All shell scripts use the built-in `platform-detect.sh` library for cross-platform compatibility:
+- **File locking**: `flock` on Linux/WSL, `mkdir`-based atomic lock on macOS
+- **Hex encoding**: `xxd` → `od` → `hexdump` fallback chain
+- **File stats**: OS-aware `stat` flags
+- **Docker socket**: Auto-detects Docker Desktop, Colima, Podman
+- **Scheduling**: Installer auto-picks cron (Linux/WSL) or launchd (macOS)
 
 ---
 

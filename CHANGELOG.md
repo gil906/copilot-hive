@@ -2,6 +2,26 @@
 
 All notable changes to Copilot Hive will be documented in this file.
 
+## [1.6.0] - 2026-04-03
+
+### Added
+- Cross-platform support for macOS (Intel & Apple Silicon), WSL 2, and Docker Desktop
+- `platform-detect.sh` — portable shell library with OS detection, locking, hex encoding, file stats
+- macOS launchd plist generation in installer (alternative to cron)
+- Docker socket auto-detection (Docker Desktop, Colima, Podman)
+- Multi-arch Dockerfile via `TARGETPLATFORM` ARG (AMD64 + ARM64)
+- OS-aware default paths: macOS uses `$HOME/.copilot-hive`, Linux uses `/opt/copilot-hive`
+- Supported Platforms section in README with compatibility table
+- Platform badge in README header
+
+### Changed
+- All `flock` calls replaced with `portable_lock`/`acquire_agent_lock` (works on macOS)
+- All `xxd` calls replaced with `random_hex`/`generate_build_id` (works on macOS)
+- All `stat -c`/`stat -f` calls replaced with `get_file_size` helper
+- All `date -r` calls replaced with `get_file_mtime` helper
+- Installer detects OS and adjusts paths, scheduling method, and defaults
+- Docker socket mount uses `${DOCKER_SOCK}` env var for Docker Desktop compatibility
+
 ## [1.5.0] - 2026-04-03
 
 ### Added
