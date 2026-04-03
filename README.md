@@ -385,43 +385,104 @@ copilot --deny-tool "bash(git push*)" \
 
 ## 🚀 Getting Started
 
-### Prerequisites
+### One-Line Install
 
-- [GitHub Copilot CLI](https://docs.github.com/en/copilot/github-copilot-in-the-cli) (`copilot` command)
-- Docker + Docker Compose
-- A Dockerized application with a health endpoint
-- Git credentials configured (`~/.git-credentials`)
+```bash
+curl -fsSL https://raw.githubusercontent.com/gil906/copilot-hive/main/install.sh | bash
+```
 
-### Quick Setup
+The interactive installer will:
+1. ✅ Check prerequisites (git, curl, python3, docker, Copilot CLI)
+2. 📁 Clone the repo to `/opt/copilot-hive` (or your preferred location)
+3. ⚙️ Walk you through project configuration (paths, containers, URLs)
+4. 📝 Generate your `config.sh` with all settings
+5. ⏰ Install the crontab with all agent schedules
+6. 🚀 You're ready — the hive starts working!
+
+### Manual Install
 
 ```bash
 # 1. Clone
-git clone https://github.com/yourusername/copilot-hive.git /opt/copilot-hive
+git clone https://github.com/gil906/copilot-hive.git /opt/copilot-hive
 cd /opt/copilot-hive
 
-# 2. Configure
-cp .env.example .env         # Add your tokens
-# Edit scripts: set PROJECT_DIR to your app's source code path
+# 2. Run installer
+bash install.sh
 
-# 3. Add version endpoint to your app
+# — or configure manually —
+
+# 3. Edit config
+cp .env.example .env               # Add your tokens
+nano config.sh                      # Set PROJECT_DIR, GH_REPO, container names
+
+# 4. Add version endpoint to your app
 # GET /api/version → {"build_id": "...", "status": "running"}
 
-# 4. Install crontab
+# 5. Install crontab
 crontab crontab.example
 
-# 5. Optional: Start monitoring
-docker-compose -f monitoring.yml up -d
+# 6. Optional: Start health webhook
+python3 health-webhook.py &
 ```
+
+### Docker Install
+
+```bash
+git clone https://github.com/gil906/copilot-hive.git /opt/copilot-hive
+cd /opt/copilot-hive
+
+# Edit config
+cp .env.example .env
+nano config.sh                      # Set your project paths
+
+# Start the hive
+docker compose up -d
+```
+
+### npm Install (prompts & CLI only)
+
+```bash
+npm install -g @gil906/copilot-hive
+
+copilot-hive list                    # List all agent prompts
+copilot-hive show developer          # View Developer agent prompt
+copilot-hive init ./my-hive          # Scaffold agent scripts
+```
+
+### Test Before Going Live
+
+```bash
+# Dry-run mode — agents work but don't push to GitHub
+./copilot-improve.sh --dry-run
+./copilot-audit.sh --dry-run
+
+# Pause all agents
+touch /opt/copilot-hive/.agents-paused
+
+# Resume
+rm /opt/copilot-hive/.agents-paused
+```
+
+### Prerequisites
+
+- [GitHub Copilot CLI](https://docs.github.com/en/copilot/github-copilot-in-the-cli) — `copilot` command
+- Docker + Docker Compose
+- Git with credentials configured (`~/.git-credentials`)
+- A Dockerized application with a `/api/version` health endpoint
+- Python 3 + Node.js (for webhook and CLI)
 
 ### Customization
 
 | What | How |
 |:-----|:----|
+| Change project settings | Edit `config.sh` (single file) |
 | Add research agents | Copy any `copilot-designer-*.sh`, change the prompt focus |
-| Change idea counts | Edit "EXACTLY 10 ideas" in prompts |
-| Adjust schedules | Modify crontab entries |
-| Change escalation | Edit `MAX_FIX_RETRIES` in dispatcher |
+| Change idea counts | Edit "EXACTLY 10 ideas" in `prompts/*.md` |
+| Adjust schedules | Edit crontab entries (`crontab -e`) |
+| Change escalation | Set `MAX_FIX_RETRIES` in `config.sh` |
 | Add notifications | Swap SmartThings for Slack/Discord/Telegram |
+| Edit prompts | Modify files in `prompts/` directory (loaded at runtime) |
+| Test safely | Use `--dry-run` flag on any pipeline agent |
 
 ---
 
