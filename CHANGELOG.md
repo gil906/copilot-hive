@@ -2,7 +2,7 @@
 
 All notable changes to Copilot Hive will be documented in this file.
 
-## [2.0.0] - 2026-04-03
+## [1.5.0] - 2026-04-03
 
 ### Added
 - Central `config.sh` for all shared configuration (#22, #23)
@@ -50,7 +50,7 @@ All notable changes to Copilot Hive will be documented in this file.
 - Ideas files read in full (was truncated at 200 lines) (#12)
 - Gitguardian scans 10 additional file extensions (#26)
 - Agent count updated from 11 to 13 in README (#48)
-- Version bumped to 2.0.0 (#50)
+- Version bumped to 1.5.0 (#50)
 
 ## [1.0.0] - Initial Release
 

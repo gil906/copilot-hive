@@ -1,6 +1,6 @@
 {
   "name": "@gil906/copilot-hive",
-  "version": "2.0.0",
+  "version": "1.5.0",
   "description": "🐝 Autonomous AI Agent Swarm — 13 GitHub Copilot agents that research, develop, audit, and deploy improvements to production apps 24/7. Collection of agent prompts, scripts, and pipeline orchestration.",
   "main": "index.js",
   "bin": {
