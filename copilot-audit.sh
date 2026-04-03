@@ -84,7 +84,7 @@ for i in data['ideas']:
         break
 with open('${_IDEAS_DIR}/admin_ideas.json', 'w') as f: json.dump(data, f, indent=2)
 " 2>/dev/null
-    echo "✅ DONE | $(date '%Y-%m-%d %H:%M') | admin | $URGENT_TITLE" >> "${_IDEAS_DIR}/implemented.log"
+    echo "✅ DONE | $(date '+%Y-%m-%d %H:%M') | admin | $URGENT_TITLE" >> "${_IDEAS_DIR}/implemented.log"
   fi
   if git -C "$PROJECT_DIR" status --porcelain | grep -q .; then
     git -C "$PROJECT_DIR" add -A
@@ -172,8 +172,8 @@ EXIT_CODE=$?
 echo "Audit Finished: $(date) (exit code: $EXIT_CODE)" >> "$LOG_FILE"
 
 if [ $EXIT_CODE -ne 0 ]; then
-  "$NOTIFY" "YourProject AUDIT failed (update_agent_status "idle" "" "$EXIT_CODE"
-exit $EXIT_CODE) at $(date '+%H:%M')" >> "$LOG_FILE" 2>&1
+  "$NOTIFY" "AUDIT failed (exit $EXIT_CODE) at $(date '+%H:%M')" >> "$LOG_FILE" 2>&1
+  update_agent_status "idle" "" "$EXIT_CODE"
   echo "Calling Emergency Fixer agent..." >> "$LOG_FILE"
   /opt/copilot-hive/copilot-emergencyfixer.sh audit "$EXIT_CODE" >> "$LOG_FILE" 2>&1
 fi

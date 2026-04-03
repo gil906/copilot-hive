@@ -360,15 +360,46 @@ if git -C "$PROJECT_DIR" status --porcelain | grep -q .; then
   BUILD_ID="$(date +%s)-$(head -c 4 /dev/urandom | xxd -p)"
   echo "$BUILD_ID" > "$PROJECT_DIR/.build-id"
   echo "Pushing changes to GitHub (build: $BUILD_ID)..." >> "$LOG_FILE"
-  git -C "$PROJECT_DIR" add -A >> "$LOG_FILE" 2>&1
-  git -C "$PROJECT_DIR" commit -m "auto: improve features $(date '+%Y-%m-%d %H:%M')" >> "$LOG_FILE" 2>&1
-  git -C "$PROJECT_DIR" push origin main >> "$LOG_FILE" 2>&1
-  PUSH_CODE=$?
-  if [ $PUSH_CODE -eq 0 ]; then
-    PUSHED="yes"
+  # Validate changes before pushing
+  CHANGED_FILES=$(git -C "$PROJECT_DIR" diff --name-only 2>/dev/null)
+  if [ -z "$CHANGED_FILES" ]; then
+    echo "No actual file changes detected — skipping push" >> "$LOG_FILE"
   else
-    "$NOTIFY" "YourProject IMPROVE git push failed at $(date '+%H:%M')" >> "$LOG_FILE" 2>&1
-  fi
+    # Run basic syntax checks on changed files
+    SYNTAX_OK=true
+    for f in $CHANGED_FILES; do
+      filepath="$PROJECT_DIR/$f"
+      [ ! -f "$filepath" ] && continue
+      case "$f" in
+        *.py)
+          python3 -m py_compile "$filepath" 2>/dev/null || {
+            echo "⚠ Syntax error in $f — skipping push" >> "$LOG_FILE"
+            SYNTAX_OK=false
+          }
+          ;;
+        *.js)
+          node --check "$filepath" 2>/dev/null || {
+            echo "⚠ Syntax error in $f — skipping push" >> "$LOG_FILE"
+            SYNTAX_OK=false
+          }
+          ;;
+      esac
+    done
+    if [ "$SYNTAX_OK" = false ]; then
+      echo "⚠ Syntax errors detected — reverting changes" >> "$LOG_FILE"
+      git -C "$PROJECT_DIR" checkout -- . 2>/dev/null
+    else
+      git -C "$PROJECT_DIR" add -A >> "$LOG_FILE" 2>&1
+      git -C "$PROJECT_DIR" commit -m "auto: improve features $(date '+%Y-%m-%d %H:%M')" >> "$LOG_FILE" 2>&1
+      git -C "$PROJECT_DIR" push origin main >> "$LOG_FILE" 2>&1
+      PUSH_CODE=$?
+      if [ $PUSH_CODE -eq 0 ]; then
+        PUSHED="yes"
+      else
+        "$NOTIFY" "YourProject IMPROVE git push failed at $(date '+%H:%M')" >> "$LOG_FILE" 2>&1
+      fi
+    fi  # SYNTAX_OK
+  fi  # CHANGED_FILES
 else
   echo "No changes to push." >> "$LOG_FILE"
 fi

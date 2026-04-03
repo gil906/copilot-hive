@@ -85,7 +85,7 @@ for i in data['ideas']:
         break
 with open('${_IDEAS_DIR}/admin_ideas.json', 'w') as f: json.dump(data, f, indent=2)
 " 2>/dev/null
-    echo "✅ DONE | $(date '%Y-%m-%d %H:%M') | admin | $URGENT_TITLE" >> "${_IDEAS_DIR}/implemented.log"
+    echo "✅ DONE | $(date '+%Y-%m-%d %H:%M') | admin | $URGENT_TITLE" >> "${_IDEAS_DIR}/implemented.log"
   fi
   if git -C "$PROJECT_DIR" status --porcelain | grep -q .; then
     git -C "$PROJECT_DIR" add -A

@@ -20,6 +20,7 @@ PIPELINE_STATUS = "/opt/copilot-hive/.pipeline-status"
 ALERT_CONTEXT_FILE = "/opt/copilot-hive/.alert-context.json"
 COOLDOWN_FILE = "/opt/copilot-hive/.health-cooldown"
 COOLDOWN_SECONDS = 600  # 10 min between emergency fixer triggers
+WEBHOOK_AUTH_TOKEN = os.environ.get("WEBHOOK_AUTH_TOKEN", "")
 
 def log(msg):
     ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -52,6 +53,17 @@ def set_cooldown():
 
 class WebhookHandler(BaseHTTPRequestHandler):
     def do_POST(self):
+        # Verify authentication token
+        if WEBHOOK_AUTH_TOKEN:
+            auth_header = self.headers.get("Authorization", "")
+            expected = f"Bearer {WEBHOOK_AUTH_TOKEN}"
+            if auth_header != expected:
+                log(f"Unauthorized webhook request from {self.client_address[0]}")
+                self.send_response(401)
+                self.end_headers()
+                self.wfile.write(b"Unauthorized")
+                return
+
         try:
             length = int(self.headers.get("Content-Length", 0))
             body = json.loads(self.rfile.read(length)) if length else {}

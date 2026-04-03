@@ -223,8 +223,7 @@ EXIT_CODE=$?
 echo "Emergency Fix Finished: $(date) (exit code: $EXIT_CODE)" >> "$LOG_FILE"
 
 if [ $EXIT_CODE -ne 0 ]; then
-  "$NOTIFY" "EMERGENCY FIXER also failed (update_agent_status "idle" "" "$EXIT_CODE"
-exit $EXIT_CODE) — manual intervention needed!" >> "$LOG_FILE" 2>&1
+  "$NOTIFY" "EMERGENCY FIXER also failed (exit $EXIT_CODE) — manual intervention needed!" >> "$LOG_FILE" 2>&1
 fi
 
 # ── Changelog ─────────────────────────────────────────────────────────

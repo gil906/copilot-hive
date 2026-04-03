@@ -45,7 +45,11 @@ EOF
 fi
 
 [ -f "$PAUSE_FILE" ] && exit 0
+# Lock pipeline status file to prevent race conditions with concurrent reads/writes
+exec 9>"${STATUS_FILE}.lock"
+flock -x 9
 source "$STATUS_FILE"
+flock -u 9
 
 # Health monitoring is handled by Uptime Kuma (port 3001)
 # → checks every 60s, alerts after 5 consecutive failures (5 min)
@@ -59,7 +63,8 @@ GH_TOKEN=""
 
 # ── Save status ──────────────────────────────────────────────────────
 save_status() {
-  cat > "$STATUS_FILE" <<EOF
+  local tmp="${STATUS_FILE}.tmp"
+  cat > "$tmp" <<EOF
 PIPELINE_STATE=$PIPELINE_STATE
 CURRENT_AGENT=$CURRENT_AGENT
 CURRENT_PID=$CURRENT_PID
@@ -73,6 +78,9 @@ NEXT_AGENT=$NEXT_AGENT
 FIX_RESPONSIBILITY=$FIX_RESPONSIBILITY
 FIX_RETRIES=$FIX_RETRIES
 EOF
+  flock -x 9
+  mv "$tmp" "$STATUS_FILE"
+  flock -u 9
 }
 
 # ── Check GitHub Actions deploy status ───────────────────────────────
@@ -214,14 +222,26 @@ case "$PIPELINE_STATE" in
     if [ -n "$CURRENT_PID" ] && kill -0 "$CURRENT_PID" 2>/dev/null; then
       NOW=$(date +%s)
       if [ "$((NOW - ${LAST_FINISHED:-0}))" -gt "$STALE_AGENT_TIMEOUT" ]; then
-        log "⚠ $CURRENT_AGENT (PID $CURRENT_PID) running >1h — may be hung"
+        log "⚠ $CURRENT_AGENT (PID $CURRENT_PID) running >1h — killing hung agent"
+        kill -TERM "$CURRENT_PID" 2>/dev/null
+        sleep 5
+        kill -0 "$CURRENT_PID" 2>/dev/null && kill -9 "$CURRENT_PID" 2>/dev/null
+        "$NOTIFY" "$CURRENT_AGENT hung for >1h — killed (PID $CURRENT_PID)" >> "$LOG_FILE" 2>&1
+        LAST_AGENT="$CURRENT_AGENT"
+        [ "$CURRENT_AGENT" = "improve" ] && NEXT_AGENT="audit" || NEXT_AGENT="improve"
+        LAST_FINISHED=$(date +%s)
+        PIPELINE_STATE="idle"; CURRENT_AGENT=""; CURRENT_PID=""
+        FIX_RESPONSIBILITY=""; FIX_RETRIES=0
+        save_status
       fi
       exit 0
     fi
 
     # Agent finished or crashed — check if it reported status
     # (agents write to .pipeline-status when done, so re-source it)
+    flock -x 9
     source "$STATUS_FILE"
+    flock -u 9
     if [ "$PIPELINE_STATE" != "running" ]; then
       # Agent reported status correctly, dispatcher will handle next cycle
       exit 0
@@ -236,8 +256,17 @@ case "$PIPELINE_STATE" in
       echo "$BUILD_ID" > .build-id
       git add -A 2>/dev/null
       git commit -m "auto: ${CURRENT_AGENT} (recovered) $(date '+%Y-%m-%d %H:%M')" 2>/dev/null
-      git push origin main 2>/dev/null
-      LAST_BUILD_ID="$BUILD_ID"
+      if git push origin main 2>/dev/null; then
+        LAST_BUILD_ID="$BUILD_ID"
+      else
+        log "⚠ Recovery push failed — setting to idle instead of waiting_deploy"
+        LAST_AGENT="$CURRENT_AGENT"
+        LAST_FINISHED=$(date +%s)
+        PIPELINE_STATE="idle"; CURRENT_AGENT=""; CURRENT_PID=""
+        DEPLOY_VERIFIED="yes"
+        save_status
+        exit 0
+      fi
     fi
 
     [ "$CURRENT_AGENT" = "improve" ] && NEXT_AGENT="audit" || NEXT_AGENT="improve"
