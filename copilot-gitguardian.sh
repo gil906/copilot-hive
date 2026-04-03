@@ -22,7 +22,7 @@ REPORT=""
 # 1. Check for secrets in tracked files
 echo "Checking for secrets..." >> "$LOG_FILE"
 SECRET_PATTERNS='(password|secret|token|api_key|apikey|private_key|AWS_ACCESS|AWS_SECRET)\s*[:=]\s*["\x27][^"\x27]{8,}'
-FOUND_SECRETS=$(git -C "$PROJECT_DIR" grep -inE "$SECRET_PATTERNS" -- '*.py' '*.js' '*.html' '*.yml' '*.yaml' '*.json' '*.env' '*.cfg' '*.conf' 2>/dev/null | \
+FOUND_SECRETS=$(git -C "$PROJECT_DIR" grep -inE "$SECRET_PATTERNS" -- '*.py' '*.js' '*.html' '*.yml' '*.yaml' '*.json' '*.env' '*.cfg' '*.conf' '*.xml' '*.tf' '*.go' '*.rs' '*.java' '*.rb' '*.php' '*.toml' '*.ini' '*.properties' 2>/dev/null | \
   grep -v '.gitignore' | \
   grep -v 'os.environ' | \
   grep -v 'os.getenv' | \
@@ -110,6 +110,21 @@ if [ -n "$UNTRACKED" ]; then
   COUNT=$(echo "$UNTRACKED" | wc -l)
   REPORT="${REPORT}\nUNTRACKED CODE FILES ($COUNT) — should these be committed?:\n${UNTRACKED}\n"
   echo "  INFO: $COUNT untracked code files" >> "$LOG_FILE"
+fi
+
+# ── Phase 6: Check git history for leaked secrets ─────────────────────
+echo "Checking git history for secrets..." >> "$LOG_FILE"
+HISTORY_SECRETS=$(git -C "$PROJECT_DIR" log --all -p --diff-filter=D 2>/dev/null | \
+  grep -iE '(password|secret|api_key|token|private_key)\s*[:=]\s*["\x27][^"\x27]{8,}' | \
+  grep -viE '(example|placeholder|your_|CHANGE_ME|os\.environ|os\.getenv|\$\{)' | \
+  head -20)
+if [ -n "$HISTORY_SECRETS" ]; then
+  COUNT=$(echo "$HISTORY_SECRETS" | wc -l)
+  ISSUES=$((ISSUES + COUNT))
+  REPORT="${REPORT}\nGIT HISTORY SECRETS ($COUNT):\n${HISTORY_SECRETS}\n"
+  echo "  WARNING: $COUNT potential secrets in git history" >> "$LOG_FILE"
+else
+  echo "  OK: No secrets found in git history" >> "$LOG_FILE"
 fi
 
 # ── Results ───────────────────────────────────────────────────────────

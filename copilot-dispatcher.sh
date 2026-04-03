@@ -51,6 +51,15 @@ EOF
 fi
 
 [ -f "$PAUSE_FILE" ] && exit 0
+
+# ── Log rotation (keep logs under 10MB) ──────────────────────────────
+for lf in "$SCRIPTS_DIR"/copilot-*.log "$SCRIPTS_DIR"/health-webhook.log; do
+  if [ -f "$lf" ] && [ $(stat -f%z "$lf" 2>/dev/null || stat -c%s "$lf" 2>/dev/null || echo 0) -gt 10485760 ]; then
+    mv "$lf" "${lf}.old"
+    echo "$(date '+%Y-%m-%d %H:%M:%S') — Log rotated (was >10MB)" > "$lf"
+  fi
+done
+
 # Lock pipeline status file to prevent race conditions with concurrent reads/writes
 exec 9>"${STATUS_FILE}.lock"
 flock -x 9
