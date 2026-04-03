@@ -105,6 +105,29 @@ function initScaffold(dir) {
     });
   }
 
+  // Replace placeholders in copied files
+  const replacements = {
+    '{{SCRIPTS_DIR}}': path.resolve(targetDir),
+    '{{PROJECT_DIR}}': path.resolve(targetDir, '..'),
+    '{{VERSION_URL}}': 'http://localhost:8080/api/version',
+    '{{AGENT_NAME}}': 'my-agent',
+    '{{AGENT_ROLE}}': 'Research',
+    '{{FOCUS_AREAS}}': 'your focus areas here',
+    '{{OUTPUT_FILE}}': 'research_latest.md',
+    '{{IDEAS_COUNT}}': '10',
+  };
+
+  const templateFiles = fs.readdirSync(targetDir).filter(f => f.endsWith('.sh'));
+  templateFiles.forEach(file => {
+    const filePath = path.join(targetDir, file);
+    let content = fs.readFileSync(filePath, 'utf8');
+    Object.entries(replacements).forEach(([key, val]) => {
+      content = content.replace(new RegExp(key.replace(/[{}]/g, '\\$&'), 'g'), val);
+    });
+    fs.writeFileSync(filePath, content);
+  });
+  console.log('  Placeholders replaced with defaults (edit to customize)');
+
   console.log(`\n✅ Scaffolded! Next steps:`);
   console.log(`   1. Edit templates/ — set PROJECT_DIR and other paths`);
   console.log(`   2. Read prompts/ — customize for your project`);

@@ -22,6 +22,14 @@ Focus: {{FOCUS_AREAS}}
 Read the source code at ${PROJECT_DIR} to understand what exists.
 OUTPUT: Write EXACTLY ${IDEAS_COUNT} ideas to ${OUTPUT_FILE}"
 
+# All research agents should output in Markdown format with this structure:
+# ## Ideas
+# ### 1. [Title]
+# **Priority**: high/medium/low
+# **Impact**: 1-10
+# **Description**: ...
+# **Implementation**: ...
+
 cd "$PROJECT_DIR"
 "$COPILOT" --prompt "$PROMPT" \
   --deny-tool "bash(git push*)" \
