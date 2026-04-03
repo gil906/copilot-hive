@@ -6,7 +6,7 @@ services:
     container_name: copilot-hive
     restart: unless-stopped
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      - ${DOCKER_SOCK:-/var/run/docker.sock}:/var/run/docker.sock
       - ${PROJECT_DIR:-/opt/yourproject}:/opt/yourproject
       - ./ideas:/opt/copilot-hive/ideas
       - ./changelogs:/opt/copilot-hive/changelogs

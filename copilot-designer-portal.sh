@@ -26,12 +26,7 @@ if [ -f "$PAUSE_FILE" ] || [ -f "$AGENT_PAUSE_FILE" ]; then
 fi
 
 # Prevent concurrent runs of same agent
-LOCK_FILE="/tmp/copilot-designer-portal.lock"
-exec 8>"$LOCK_FILE"
-if ! flock -n 8; then
-  echo "$(date) — SKIPPED: Another instance already running" >> "$LOG_FILE"
-  exit 0
-fi
+acquire_agent_lock "designer-portal" || { echo "$(date) — SKIPPED: Another instance already running" >> "$LOG_FILE"; exit 0; }
 
 echo "======================================" >> "$LOG_FILE"
 echo "Portal Designer Started: $(date)" >> "$LOG_FILE"

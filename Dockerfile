@@ -2,7 +2,9 @@
 #  Copilot Hive — Containerized Agent Framework
 #  Runs the dispatcher and all agent scripts via cron
 # ══════════════════════════════════════════════════════════════════════
-FROM ubuntu:22.04
+# Multi-arch support: builds on AMD64, ARM64 (Apple Silicon, Raspberry Pi)
+ARG TARGETPLATFORM=linux/amd64
+FROM --platform=${TARGETPLATFORM} ubuntu:22.04
 
 RUN apt-get update && apt-get install -y \
     bash curl git python3 python3-pip jq cron docker.io \

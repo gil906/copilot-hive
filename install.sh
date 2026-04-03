@@ -30,7 +30,28 @@ warn() { echo -e "  ${YELLOW}⚠${NC} $*"; }
 err()  { echo -e "  ${RED}✗${NC} $*"; }
 ask()  { echo -en "  ${BLUE}?${NC} $* "; }
 
+portable_mktemp() {
+  local prefix="${1:-copilot}"
+  if mktemp -t "${prefix}.XXXXXX" 2>/dev/null; then
+    return
+  fi
+  mktemp
+}
+
 banner
+
+# Detect OS
+DETECTED_OS="$(uname -s)"
+case "$DETECTED_OS" in
+  Darwin) log "Platform: macOS $(sw_vers -productVersion 2>/dev/null || echo '')" ;;
+  Linux)
+    if grep -qi microsoft /proc/version 2>/dev/null; then
+      log "Platform: WSL (Windows Subsystem for Linux)"
+    else
+      log "Platform: Linux $(uname -r)"
+    fi
+    ;;
+esac
 
 # ── Step 1: Check prerequisites ──────────────────────────────────────
 echo -e "\n${BOLD}Step 1: Checking prerequisites${NC}\n"
@@ -71,7 +92,16 @@ fi
 # ── Step 2: Choose install location ──────────────────────────────────
 echo -e "\n${BOLD}Step 2: Installation${NC}\n"
 
-DEFAULT_DIR="/opt/copilot-hive"
+# OS-aware default paths
+if [ "$(uname -s)" = "Darwin" ]; then
+  DEFAULT_DIR="$HOME/.copilot-hive"
+  DEFAULT_PROJECT="$HOME/projects/yourproject"
+  DEFAULT_COMPOSE="$HOME/docker-compose/yourproject.yml"
+else
+  DEFAULT_DIR="/opt/copilot-hive"
+  DEFAULT_PROJECT="/opt/yourproject"
+  DEFAULT_COMPOSE="/opt/docker-compose/yourproject.yml"
+fi
 ask "Install directory [${DEFAULT_DIR}]:"
 read -r INSTALL_DIR
 INSTALL_DIR="${INSTALL_DIR:-$DEFAULT_DIR}"
@@ -102,17 +132,17 @@ chmod +x *.sh 2>/dev/null
 # ── Step 3: Configure your project ──────────────────────────────────
 echo -e "\n${BOLD}Step 3: Project Configuration${NC}\n"
 
-ask "Your project source code path [/opt/yourproject]:"
+ask "Your project source code path [${DEFAULT_PROJECT}]:"
 read -r PROJECT_DIR
-PROJECT_DIR="${PROJECT_DIR:-/opt/yourproject}"
+PROJECT_DIR="${PROJECT_DIR:-$DEFAULT_PROJECT}"
 
 ask "GitHub repo (owner/repo) [owner/yourproject]:"
 read -r GH_REPO
 GH_REPO="${GH_REPO:-owner/yourproject}"
 
-ask "Docker compose file path [/opt/docker-compose/yourproject.yml]:"
+ask "Docker compose file path [${DEFAULT_COMPOSE}]:"
 read -r COMPOSE_FILE
-COMPOSE_FILE="${COMPOSE_FILE:-/opt/docker-compose/yourproject.yml}"
+COMPOSE_FILE="${COMPOSE_FILE:-$DEFAULT_COMPOSE}"
 
 ask "API container name [yourproject-api]:"
 read -r CONTAINER_API
@@ -178,48 +208,133 @@ log "Created ideas/ and changelogs/ directories"
 # ── Step 5: Install crontab ──────────────────────────────────────────
 echo -e "\n${BOLD}Step 5: Crontab Setup${NC}\n"
 
-ask "Install crontab for automated scheduling? [Y/n]:"
-read -r INSTALL_CRON
-INSTALL_CRON="${INSTALL_CRON:-Y}"
+# ── macOS launchd vs Linux cron ──────────────────────────────────────
+if [ "$(uname -s)" = "Darwin" ]; then
+  ask "Install launchd agents for automated scheduling? [Y/n]:"
+  read -r INSTALL_SCHED
+  INSTALL_SCHED="${INSTALL_SCHED:-Y}"
 
-if [[ "$INSTALL_CRON" =~ ^[Yy] ]]; then
-  CRON_TMP=$(mktemp)
-  crontab -l 2>/dev/null > "$CRON_TMP" || true
-  
-  # Remove any existing copilot-hive entries
-  grep -v 'copilot-hive\|copilot-dispatcher\|copilot-improve\|copilot-audit\|copilot-designer\|copilot-architect\|copilot-radical\|copilot-lawyer\|copilot-compliance\|copilot-reporter' "$CRON_TMP" > "${CRON_TMP}.clean" 2>/dev/null || true
-  mv "${CRON_TMP}.clean" "$CRON_TMP"
+  if [[ "$INSTALL_SCHED" =~ ^[Yy] ]]; then
+    AGENTS_DIR="$HOME/Library/LaunchAgents"
+    mkdir -p "$AGENTS_DIR"
 
-  cat >> "$CRON_TMP" << CRONEOF
+    # Dispatcher — runs every 60 seconds
+    cat > "$AGENTS_DIR/com.copilot-hive.dispatcher.plist" << PLISTEOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.copilot-hive.dispatcher</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>${INSTALL_DIR}/copilot-dispatcher.sh</string>
+    </array>
+    <key>StartInterval</key>
+    <integer>60</integer>
+    <key>StandardOutPath</key>
+    <string>${INSTALL_DIR}/copilot-dispatcher.log</string>
+    <key>StandardErrorPath</key>
+    <string>${INSTALL_DIR}/copilot-dispatcher.log</string>
+    <key>RunAtLoad</key>
+    <true/>
+</dict>
+</plist>
+PLISTEOF
+
+    # Research agents — hourly
+    for agent in designer-web designer-portal architect-api; do
+      cat > "$AGENTS_DIR/com.copilot-hive.${agent}.plist" << PLISTEOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.copilot-hive.${agent}</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>${INSTALL_DIR}/copilot-${agent}.sh</string>
+    </array>
+    <key>StartInterval</key>
+    <integer>3600</integer>
+    <key>StandardOutPath</key>
+    <string>${INSTALL_DIR}/copilot-${agent}.log</string>
+    <key>StandardErrorPath</key>
+    <string>${INSTALL_DIR}/copilot-${agent}.log</string>
+</dict>
+</plist>
+PLISTEOF
+    done
+
+    # Strategic agents — every 2 hours
+    for agent in radical lawyer compliance; do
+      cat > "$AGENTS_DIR/com.copilot-hive.${agent}.plist" << PLISTEOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.copilot-hive.${agent}</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>${INSTALL_DIR}/copilot-${agent}.sh</string>
+    </array>
+    <key>StartInterval</key>
+    <integer>7200</integer>
+    <key>StandardOutPath</key>
+    <string>${INSTALL_DIR}/copilot-${agent}.log</string>
+    <key>StandardErrorPath</key>
+    <string>${INSTALL_DIR}/copilot-${agent}.log</string>
+</dict>
+</plist>
+PLISTEOF
+    done
+
+    # Load all agents
+    for plist in "$AGENTS_DIR"/com.copilot-hive.*.plist; do
+      launchctl load "$plist" 2>/dev/null
+    done
+    log "Installed $(ls "$AGENTS_DIR"/com.copilot-hive.*.plist | wc -l | tr -d ' ') launchd agents"
+    log "Manage with: launchctl list | grep copilot"
+  else
+    warn "Skipped scheduling — see README for manual launchd setup"
+  fi
+else
+  # ── Linux/WSL — use crontab ──────────────────────────────────────
+  ask "Install crontab for automated scheduling? [Y/n]:"
+  read -r INSTALL_CRON
+  INSTALL_CRON="${INSTALL_CRON:-Y}"
+
+  if [[ "$INSTALL_CRON" =~ ^[Yy] ]]; then
+    CRON_TMP=$(portable_mktemp "copilot-cron")
+    crontab -l 2>/dev/null > "$CRON_TMP" || true
+    
+    # Remove any existing copilot-hive entries
+    grep -v 'copilot-hive\|copilot-dispatcher\|copilot-improve\|copilot-audit\|copilot-designer\|copilot-architect\|copilot-radical\|copilot-lawyer\|copilot-compliance\|copilot-reporter' "$CRON_TMP" > "${CRON_TMP}.clean" 2>/dev/null || true
+    mv "${CRON_TMP}.clean" "$CRON_TMP"
+
+    cat >> "$CRON_TMP" << CRONEOF
 
 # ── Copilot Hive — Autonomous Agent Swarm ────────────────────────────
-# Pipeline dispatcher (every minute)
 * * * * * ${INSTALL_DIR}/copilot-dispatcher.sh >> ${INSTALL_DIR}/copilot-dispatcher.log 2>&1
-
-# Research agents — specialists (every hour, staggered)
 0  * * * * ${INSTALL_DIR}/copilot-designer-web.sh >> ${INSTALL_DIR}/copilot-designer-web.log 2>&1
 5  * * * * ${INSTALL_DIR}/copilot-designer-portal.sh >> ${INSTALL_DIR}/copilot-designer-portal.log 2>&1
 10 * * * * ${INSTALL_DIR}/copilot-architect-api.sh >> ${INSTALL_DIR}/copilot-architect-api.log 2>&1
-
-# Research agents — strategic (every 2 hours)
 15 */2 * * * ${INSTALL_DIR}/copilot-radical.sh >> ${INSTALL_DIR}/copilot-radical.log 2>&1
 20 */2 * * * ${INSTALL_DIR}/copilot-lawyer.sh >> ${INSTALL_DIR}/copilot-lawyer.log 2>&1
 25 */2 * * * ${INSTALL_DIR}/copilot-compliance.sh >> ${INSTALL_DIR}/copilot-compliance.log 2>&1
-
-# Reporter (daily at 6pm, weekly on Sunday)
 0 18 * * * ${INSTALL_DIR}/copilot-reporter.sh daily >> ${INSTALL_DIR}/copilot-reporter.log 2>&1
 0 18 * * 0 ${INSTALL_DIR}/copilot-reporter.sh weekly >> ${INSTALL_DIR}/copilot-reporter.log 2>&1
-
-# Security & regression (daily at midnight)
 0  0 * * * ${INSTALL_DIR}/copilot-gitguardian.sh >> ${INSTALL_DIR}/copilot-gitguardian.log 2>&1
 30 0 * * * ${INSTALL_DIR}/copilot-regressiontest.sh >> ${INSTALL_DIR}/copilot-regressiontest.log 2>&1
 CRONEOF
 
-  crontab "$CRON_TMP"
-  rm -f "$CRON_TMP"
-  log "Crontab installed with all agent schedules"
-else
-  warn "Skipped crontab — see crontab.example for manual setup"
+    crontab "$CRON_TMP"
+    rm -f "$CRON_TMP"
+    log "Crontab installed with all agent schedules"
+  else
+    warn "Skipped crontab — see crontab.example for manual setup"
+  fi
 fi
 
 # ── Step 6: Version endpoint reminder ────────────────────────────────

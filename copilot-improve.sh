@@ -420,7 +420,7 @@ PUSHED="no"
 BUILD_ID=""
 if git -C "$PROJECT_DIR" status --porcelain | grep -q .; then
   # Stamp build version so dispatcher can verify the new container
-  BUILD_ID="$(date +%s)-$(head -c 4 /dev/urandom | xxd -p)"
+  BUILD_ID="$(generate_build_id)"
   echo "$BUILD_ID" > "$PROJECT_DIR/.build-id"
   echo "Pushing changes to GitHub (build: $BUILD_ID)..." >> "$LOG_FILE"
   # Validate changes before pushing

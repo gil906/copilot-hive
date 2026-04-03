@@ -54,7 +54,7 @@ fi
 
 # ── Log rotation (keep logs under 10MB) ──────────────────────────────
 for lf in "$SCRIPTS_DIR"/copilot-*.log "$SCRIPTS_DIR"/health-webhook.log; do
-  if [ -f "$lf" ] && [ $(stat -f%z "$lf" 2>/dev/null || stat -c%s "$lf" 2>/dev/null || echo 0) -gt 10485760 ]; then
+  if [ -f "$lf" ] && [ $(get_file_size "$lf") -gt 10485760 ]; then
     mv "$lf" "${lf}.old"
     echo "$(date '+%Y-%m-%d %H:%M:%S') — Log rotated (was >10MB)" > "$lf"
   fi
@@ -64,10 +64,9 @@ done
 echo "$(date +%s)" > "${SCRIPTS_DIR}/.dispatcher-heartbeat"
 
 # Lock pipeline status file to prevent race conditions with concurrent reads/writes
-exec 9>"${STATUS_FILE}.lock"
-flock -x 9
+portable_lock "${STATUS_FILE}.lock"
 source "$STATUS_FILE"
-flock -u 9
+portable_unlock "${STATUS_FILE}.lock"
 
 # Health monitoring is handled by Uptime Kuma (port 3001)
 # → checks every 60s, alerts after 5 consecutive failures (5 min)
@@ -97,9 +96,9 @@ FIX_RESPONSIBILITY=$FIX_RESPONSIBILITY
 FIX_RETRIES=$FIX_RETRIES
 LAST_GOOD_COMMIT=$LAST_GOOD_COMMIT
 EOF
-  flock -x 9
+  portable_lock "${STATUS_FILE}.lock"
   mv "$tmp" "$STATUS_FILE"
-  flock -u 9
+  portable_unlock "${STATUS_FILE}.lock"
 }
 
 # ── Generate team context for agents ─────────────────────────────────
@@ -134,7 +133,7 @@ except: print('  (status unavailable)')
 
 ## Active Ideas Files
 $(for f in "$IDEAS_DIR"/*_latest.md "$IDEAS_DIR"/*_checklist.json; do
-  [ -f "\$f" ] && echo "- \$(basename "\$f"): \$(wc -l < "\$f") lines (\$(date -r "\$f" '+%H:%M' 2>/dev/null || echo '?'))"
+  [ -f "\$f" ] && echo "- \$(basename "\$f"): \$(wc -l < "\$f") lines (\$(get_file_mtime "\$f"))"
 done)
 TEAMCTX
   log "Generated team context"
@@ -301,9 +300,9 @@ case "$PIPELINE_STATE" in
 
     # Agent finished or crashed — check if it reported status
     # (agents write to .pipeline-status when done, so re-source it)
-    flock -x 9
+    portable_lock "${STATUS_FILE}.lock"
     source "$STATUS_FILE"
-    flock -u 9
+    portable_unlock "${STATUS_FILE}.lock"
     if [ "$PIPELINE_STATE" != "running" ]; then
       # Agent reported status correctly, dispatcher will handle next cycle
       exit 0

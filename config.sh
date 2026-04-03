@@ -5,6 +5,10 @@
 #  Customize these values for your project.
 # ══════════════════════════════════════════════════════════════════════
 
+# ── Load cross-platform compatibility library ────────────────────────
+_CONFIG_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${_CONFIG_DIR}/platform-detect.sh"
+
 # ── Project Settings ─────────────────────────────────────────────────
 export SCRIPTS_DIR="${SCRIPTS_DIR:-/opt/copilot-hive}"
 export PROJECT_DIR="${PROJECT_DIR:-/opt/yourproject}"
