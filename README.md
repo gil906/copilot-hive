@@ -8,7 +8,7 @@
 
 <br/><br/>
 
-[![Agents](https://img.shields.io/badge/AI_Agents-11-blueviolet?style=for-the-badge&logo=github-copilot&logoColor=white)](#-the-hive---11-agents)
+[![Agents](https://img.shields.io/badge/AI_Agents-13-blueviolet?style=for-the-badge&logo=github-copilot&logoColor=white)](#-the-hive---13-agents)
 [![Pipeline](https://img.shields.io/badge/Pipeline-Event_Driven-green?style=for-the-badge&logo=rocket&logoColor=white)](#-event-driven-pipeline)
 [![Ideas/Day](https://img.shields.io/badge/Ideas%2FDay-780+-orange?style=for-the-badge&logo=lightbulb&logoColor=white)](#-idea-flow)
 [![Monitoring](https://img.shields.io/badge/Uptime_Kuma-Self_Healing-blue?style=for-the-badge&logo=uptimekuma&logoColor=white)](#-health-monitoring--self-healing)
@@ -18,9 +18,9 @@
 
 *"What if your entire engineering team was AI — and never slept?"*
 
-**Copilot Hive** is an open-source framework for running **11 specialized GitHub Copilot CLI agents** as an autonomous development team. They research ideas, implement features, audit code, deploy changes, and fix failures — all without human intervention, 24/7.
+**Copilot Hive** is an open-source framework for running **13 specialized GitHub Copilot CLI agents** as an autonomous development team. They research ideas, implement features, audit code, deploy changes, and fix failures — all without human intervention, 24/7.
 
-[Architecture](#-architecture) · [Agents](#-the-hive---11-agents) · [Pipeline](#-event-driven-pipeline) · [Self-Healing](#-smart-failure-coordination) · [Get Started](#-getting-started)
+[Architecture](#-architecture) · [Agents](#-the-hive---13-agents) · [Pipeline](#-event-driven-pipeline) · [Self-Healing](#-smart-failure-coordination) · [Get Started](#-getting-started)
 
 </div>
 
@@ -108,7 +108,7 @@ Live container health checks with a 7-level escalation ladder (L0 Grace → L6 E
 
 ---
 
-## 🐝 The Hive — 11 Agents
+## 🐝 The Hive — 13 Agents
 
 ### 🔧 Code-Modifying Agents
 
@@ -329,7 +329,7 @@ from any specialist agent combined. Think disruption, not polish.
 <summary><strong>🔧 Developer — reads all ideas, implements the best</strong></summary>
 
 ```
-You are the DEVELOPER agent. Part of an eleven-agent autonomous team.
+You are the DEVELOPER agent. Part of a thirteen-agent autonomous team.
 
 Read the following idea files and implement the best improvements:
   - ideas/web_design_latest.md   (Website Designer — 10 ideas)

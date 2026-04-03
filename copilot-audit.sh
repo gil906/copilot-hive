@@ -5,6 +5,13 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 source "${SCRIPT_DIR}/config.sh"
 START_TIME=$(date +%s)
 
+# ── Dry-run mode ─────────────────────────────────────────────────────
+DRY_RUN=false
+if [ "${1:-}" = "--dry-run" ] || [ "${DRY_RUN_MODE:-}" = "true" ]; then
+  DRY_RUN=true
+  echo "$(date) — DRY RUN MODE: No git push will occur" >> "$LOG_FILE"
+fi
+
 # ── Config ────────────────────────────────────────────────────────────────────
 PROJECT_DIR="/opt/yourproject"
 LOG_FILE="/opt/copilot-hive/copilot-audit.log"
@@ -103,7 +110,14 @@ Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
   fi
 fi
 
-PROMPT="You are the AUDITOR agent for Your Project (yourproject.example.com), a professional Docker-based web application security platform. You are part of an eight-agent autonomous team:
+# ── Load prompt from file if available ────────────────────────────────
+PROMPT_FILE="${SCRIPTS_DIR}/prompts/auditor.md"
+if [ -f "$PROMPT_FILE" ]; then
+  PROMPT=$(cat "$PROMPT_FILE")
+  echo "Loaded prompt from $PROMPT_FILE" >> "$LOG_FILE"
+else
+  # Fallback to inline prompt below
+PROMPT="You are the AUDITOR agent for Your Project (yourproject.example.com), a professional Docker-based web application security platform. You are part of a thirteen-agent autonomous team:
 
 1. FEATURE ENGINEER — builds and implements features (runs every 3 hours, reads ideas from Radical, Lawyer & Compliance)
 2. YOU (AUDITOR) — tests, audits, and fixes issues (runs 90 min after Feature Engineer)
@@ -145,6 +159,7 @@ IMPORTANT RULES:
 - Never commit secrets or tokens
 - Fix everything you find — do not just list problems
 - Be thorough and systematic — the Feature Engineer depends on you to catch what they missed"
+fi  # end prompt file fallback
 
 # ── Run ───────────────────────────────────────────────────────────────────────
 echo "======================================" >> "$LOG_FILE"
@@ -181,7 +196,11 @@ CTXEOF
 
 FULL_PROMPT="${PROMPT}${CONTEXT}"
 update_agent_status "running" "Running Copilot CLI"
-"$COPILOT" --prompt "$FULL_PROMPT" --yolo --allow-all-paths >> "$LOG_FILE" 2>&1
+DRY_RUN_FLAGS=""
+if [ "$DRY_RUN" = true ]; then
+  DRY_RUN_FLAGS='--deny-tool "bash(git push*)" --deny-tool "bash(git commit*)"'
+fi
+eval "$COPILOT" --prompt "$FULL_PROMPT" --yolo --allow-all-paths $DRY_RUN_FLAGS >> "$LOG_FILE" 2>&1
 
 EXIT_CODE=$?
 echo "Audit Finished: $(date) (exit code: $EXIT_CODE)" >> "$LOG_FILE"
@@ -225,6 +244,9 @@ if git -C "$PROJECT_DIR" status --porcelain | grep -q .; then
   echo "Pushing changes to GitHub (build: $BUILD_ID)..." >> "$LOG_FILE"
   git -C "$PROJECT_DIR" add -A >> "$LOG_FILE" 2>&1
   git -C "$PROJECT_DIR" commit -m "auto: audit & fix $(date '+%Y-%m-%d %H:%M')" >> "$LOG_FILE" 2>&1
+  if [ "$DRY_RUN" = true ]; then
+    echo "DRY RUN: Would push $(git -C "$PROJECT_DIR" diff --stat HEAD 2>/dev/null | tail -1)" >> "$LOG_FILE"
+  else
   git -C "$PROJECT_DIR" push origin main >> "$LOG_FILE" 2>&1
   PUSH_CODE=$?
   if [ $PUSH_CODE -eq 0 ]; then
@@ -232,6 +254,7 @@ if git -C "$PROJECT_DIR" status --porcelain | grep -q .; then
   else
     "$NOTIFY" "YourProject AUDIT git push failed at $(date '+%H:%M')" >> "$LOG_FILE" 2>&1
   fi
+  fi  # DRY_RUN
 else
   echo "No changes to push." >> "$LOG_FILE"
 fi

@@ -134,9 +134,16 @@ ALSO CHECK (use curl to discover their legal pages):
   - https://www.rapid7.com (legal pages, responsible disclosure)
 "
 
+# ── Load prompt from file if available ────────────────────────────────
+PROMPT_FILE="${SCRIPTS_DIR}/prompts/lawyer.md"
+if [ -f "$PROMPT_FILE" ]; then
+  PROMPT=$(cat "$PROMPT_FILE")
+  echo "Loaded prompt from $PROMPT_FILE" >> "$LOG_FILE"
+else
+  # Fallback to inline prompt below
 PROMPT="You are the LAWYER agent for Your Project (yourproject.example.com), a professional Docker-based web application security platform.
 
-You are part of an eight-agent autonomous team:
+You are part of a thirteen-agent autonomous team:
 1. FEATURE ENGINEER — builds and implements features (reads YOUR legal recommendations)
 2. AUDITOR — tests, audits, and fixes issues
 3. EMERGENCY FIXER — called when agents fail
@@ -264,6 +271,7 @@ FORMAT: For each idea, include:
 - **Impact**: 1-10 (10 = game-changing)
 - **Effort**: small / medium / large
 Order ideas by impact score (highest first)."
+fi  # end prompt file fallback
 
 # ── Run ───────────────────────────────────────────────────────────────────────
 echo "======================================" >> "$LOG_FILE"

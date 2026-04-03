@@ -121,9 +121,16 @@ if [ -f "${IDEAS_DIR}/implemented.log" ]; then
   DONE_IDEAS=$(grep -i "compliance" "${IDEAS_DIR}/implemented.log" 2>/dev/null | tail -50)
 fi
 
+# ── Load prompt from file if available ────────────────────────────────
+PROMPT_FILE="${SCRIPTS_DIR}/prompts/compliance.md"
+if [ -f "$PROMPT_FILE" ]; then
+  PROMPT=$(cat "$PROMPT_FILE")
+  echo "Loaded prompt from $PROMPT_FILE" >> "$LOG_FILE"
+else
+  # Fallback to inline prompt below
 PROMPT="You are the COMPLIANCE OFFICER agent for Your Project (yourproject.example.com), a professional Docker-based web application security platform.
 
-You are part of an eight-agent autonomous team:
+You are part of a thirteen-agent autonomous team:
 1. FEATURE ENGINEER — builds and implements features (reads YOUR compliance requirements)
 2. AUDITOR — tests, audits, and fixes issues
 3. EMERGENCY FIXER — called when agents fail
@@ -316,6 +323,7 @@ IMPLEMENTED IDEAS TRACKING:
   → Also append to ${IDEAS_DIR}/implemented.log: ❌ UNDONE | [date] | compliance | [idea] | [why it needs redo]
   → Update the item status back to 'partial' or 'missing' in compliance_checklist.json
 - If done items are properly implemented, skip them and focus on new gaps"
+fi  # end prompt file fallback
 
 # ── Run ───────────────────────────────────────────────────────────────────────
 echo "======================================" >> "$LOG_FILE"

@@ -88,6 +88,13 @@ fi
 IMPLEMENTED=""
 [ -f "${IDEAS_DIR}/implemented.log" ] && IMPLEMENTED=$(tail -100 "${IDEAS_DIR}/implemented.log" 2>/dev/null)
 
+# ── Load prompt from file if available ────────────────────────────────
+PROMPT_FILE="${SCRIPTS_DIR}/prompts/portal-designer.md"
+if [ -f "$PROMPT_FILE" ]; then
+  PROMPT=$(cat "$PROMPT_FILE")
+  echo "Loaded prompt from $PROMPT_FILE" >> "$LOG_FILE"
+else
+  # Fallback to inline prompt below
 PROMPT=$(cat <<'PROMPTEOF'
 You are the PORTAL DESIGNER agent for Your Project (yourproject.example.com), a professional cybersecurity/security scanning platform.
 
@@ -141,6 +148,7 @@ FORMAT: For each idea, include:
 Order ideas by impact score (highest first).
 PROMPTEOF
 )
+fi  # end prompt file fallback
 
 CONTEXT=$(cat <<CTXEOF
 

@@ -5,6 +5,13 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 source "${SCRIPT_DIR}/config.sh"
 START_TIME=$(date +%s)
 
+# ── Dry-run mode ─────────────────────────────────────────────────────
+DRY_RUN=false
+if [ "${1:-}" = "--dry-run" ] || [ "${DRY_RUN_MODE:-}" = "true" ]; then
+  DRY_RUN=true
+  echo "$(date) — DRY RUN MODE: No git push will occur" >> "$LOG_FILE"
+fi
+
 # ── Config ────────────────────────────────────────────────────────────────────
 PROJECT_DIR="/opt/yourproject"
 LOG_FILE="/opt/copilot-hive/copilot-improve.log"
@@ -130,7 +137,14 @@ if [ -n "$URGENT_IDEA" ]; then
   exit 0
 fi
 
-PROMPT="You are the DEVELOPER agent for Your Project (yourproject.example.com), a professional Docker-based web application security platform. You are part of an eleven-agent autonomous team:
+# ── Load prompt from file if available ────────────────────────────────
+PROMPT_FILE="${SCRIPTS_DIR}/prompts/developer.md"
+if [ -f "$PROMPT_FILE" ]; then
+  PROMPT=$(cat "$PROMPT_FILE")
+  echo "Loaded prompt from $PROMPT_FILE" >> "$LOG_FILE"
+else
+  # Fallback to inline prompt below
+PROMPT="You are the DEVELOPER agent for Your Project (yourproject.example.com), a professional Docker-based web application security platform. You are part of a thirteen-agent autonomous team:
 
 1. YOU (DEVELOPER) — the ONLY agent that writes code. Implements ALL ideas from research agents.
 2. AUDITOR — tests, audits, and fixes issues (runs after you in the pipeline)
@@ -181,6 +195,7 @@ IMPORTANT RULES:
 - AFTER implementing an idea, mark it as done in ${IDEAS_DIR}/implemented.log using this format:
     ✅ DONE | [date] | [agent: radical/lawyer/compliance] | [idea summary]
   This tells all research agents that the idea has been implemented so they stop suggesting it."
+fi  # end prompt file fallback
 
 # ── Retry helper for network operations ──────────────────────────────
 retry() {
@@ -359,7 +374,11 @@ CTXEOF
 
 FULL_PROMPT="${PROMPT}${CONTEXT}"
 update_agent_status "improve" "running" "Running Copilot CLI"
-"$COPILOT" --prompt "$FULL_PROMPT" --yolo --allow-all-paths >> "$LOG_FILE" 2>&1
+DRY_RUN_FLAGS=""
+if [ "$DRY_RUN" = true ]; then
+  DRY_RUN_FLAGS='--deny-tool "bash(git push*)" --deny-tool "bash(git commit*)"'
+fi
+eval "$COPILOT" --prompt "$FULL_PROMPT" --yolo --allow-all-paths $DRY_RUN_FLAGS >> "$LOG_FILE" 2>&1
 
 EXIT_CODE=$?
 echo "Finished: $(date) (exit code: $EXIT_CODE)" >> "$LOG_FILE"
@@ -441,6 +460,9 @@ if git -C "$PROJECT_DIR" status --porcelain | grep -q .; then
     else
       git -C "$PROJECT_DIR" add -A >> "$LOG_FILE" 2>&1
       git -C "$PROJECT_DIR" commit -m "auto: improve features $(date '+%Y-%m-%d %H:%M')" >> "$LOG_FILE" 2>&1
+      if [ "$DRY_RUN" = true ]; then
+        echo "DRY RUN: Would push $(git -C "$PROJECT_DIR" diff --stat HEAD 2>/dev/null | tail -1)" >> "$LOG_FILE"
+      else
       retry 3 5 "git -C '$PROJECT_DIR' push origin main" >> "$LOG_FILE" 2>&1
       PUSH_CODE=$?
       if [ $PUSH_CODE -eq 0 ]; then
@@ -448,6 +470,7 @@ if git -C "$PROJECT_DIR" status --porcelain | grep -q .; then
       else
         "$NOTIFY" "YourProject IMPROVE git push failed at $(date '+%H:%M')" >> "$LOG_FILE" 2>&1
       fi
+      fi  # DRY_RUN
     fi  # SYNTAX_OK
   fi  # CHANGED_FILES
 else

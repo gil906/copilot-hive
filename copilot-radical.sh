@@ -134,9 +134,16 @@ ALSO DISCOVER AND CHECK:
   - Check what features customers request on G2, Capterra reviews of competitors
 "
 
+# ── Load prompt from file if available ────────────────────────────────
+PROMPT_FILE="${SCRIPTS_DIR}/prompts/radical-visionary.md"
+if [ -f "$PROMPT_FILE" ]; then
+  PROMPT=$(cat "$PROMPT_FILE")
+  echo "Loaded prompt from $PROMPT_FILE" >> "$LOG_FILE"
+else
+  # Fallback to inline prompt below
 PROMPT="You are the RADICAL RESTRUCTURE agent for Your Project (yourproject.example.com), a professional Docker-based web application security platform.
 
-You are part of an eleven-agent autonomous team:
+You are part of a thirteen-agent autonomous team:
 1. DEVELOPER — builds and implements ALL ideas from research agents
 2. AUDITOR — tests, audits, and fixes issues
 3. EMERGENCY FIXER — called when agents fail or containers crash
@@ -325,6 +332,7 @@ FORMAT: For each idea, include:
 - **Impact**: 1-10 (10 = game-changing)
 - **Effort**: small / medium / large
 Order ideas by impact score (highest first)."
+fi  # end prompt file fallback
 
 # ── Run ───────────────────────────────────────────────────────────────────────
 echo "======================================" >> "$LOG_FILE"

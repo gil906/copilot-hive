@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  copilot-hive:
+    build: .
+    container_name: copilot-hive
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${PROJECT_DIR:-/opt/yourproject}:/opt/yourproject
+      - ./ideas:/opt/copilot-hive/ideas
+      - ./changelogs:/opt/copilot-hive/changelogs
+      - ~/.git-credentials:/root/.git-credentials:ro
+    environment:
+      - SCRIPTS_DIR=/opt/copilot-hive
+      - PROJECT_DIR=/opt/yourproject
+      - WEBHOOK_AUTH_TOKEN=${WEBHOOK_AUTH_TOKEN:-}
+      - SMARTTHINGS_PAT=${SMARTTHINGS_PAT:-}
+    ports:
+      - "9095:9095"
+    healthcheck:
+      test: ["CMD", "bash", "-c", "[ -f .dispatcher-heartbeat ] && [ $(($(date +%s) - $(cat .dispatcher-heartbeat))) -lt 180 ]"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
