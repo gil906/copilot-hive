@@ -38,9 +38,14 @@
   },
   "files": [
     "bin/",
+    "lib/",
     "prompts/",
+    "projects/",
     "templates/",
     "index.js",
+    "dashboard.js",
+    "run-agent.sh",
+    "setup-project.sh",
     "README.md",
     "LICENSE"
   ]

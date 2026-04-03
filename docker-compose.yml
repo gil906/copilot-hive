@@ -10,6 +10,7 @@ services:
       - ${PROJECT_DIR:-/opt/yourproject}:/opt/yourproject
       - ./ideas:/opt/copilot-hive/ideas
       - ./changelogs:/opt/copilot-hive/changelogs
+      - ./projects:/opt/copilot-hive/projects
       - ~/.git-credentials:/root/.git-credentials:ro
     environment:
       - SCRIPTS_DIR=/opt/copilot-hive
@@ -18,6 +19,7 @@ services:
       - SMARTTHINGS_PAT=${SMARTTHINGS_PAT:-}
     ports:
       - "9095:9095"
+      - "9096:9096"
     healthcheck:
       test: ["CMD", "bash", "-c", "[ -f .dispatcher-heartbeat ] && [ $(($(date +%s) - $(cat .dispatcher-heartbeat))) -lt 180 ]"]
       interval: 60s

@@ -15,20 +15,21 @@ WORKDIR /opt/copilot-hive
 
 # Copy all scripts and config
 COPY *.sh ./
+COPY *.js ./
+COPY *.py ./
 COPY config.sh ./
-COPY health-webhook.py ./
-COPY index.js ./
 COPY package.json ./
 COPY bin/ ./bin/
+COPY lib/ ./lib/
 COPY prompts/ ./prompts/
 COPY templates/ ./templates/
 COPY .env.example ./
 
 # Make scripts executable
-RUN chmod +x *.sh
+RUN chmod +x *.sh lib/*.sh
 
 # Create runtime directories
-RUN mkdir -p ideas changelogs
+RUN mkdir -p ideas changelogs projects
 
 # Install npm dependencies (if any)
 RUN npm install --production 2>/dev/null || true
@@ -37,12 +38,12 @@ RUN npm install --production 2>/dev/null || true
 COPY crontab.example /etc/cron.d/copilot-hive
 RUN chmod 0644 /etc/cron.d/copilot-hive 2>/dev/null || true
 
-EXPOSE 9095
+EXPOSE 9095 9096
 
 # Health check
 HEALTHCHECK --interval=60s --timeout=10s --retries=3 \
   CMD [ -f /opt/copilot-hive/.dispatcher-heartbeat ] && \
       [ $(($(date +%s) - $(cat /opt/copilot-hive/.dispatcher-heartbeat))) -lt 180 ] || exit 1
 
-# Run health webhook + cron
-CMD ["bash", "-c", "python3 health-webhook.py & cron -f"]
+# Run health webhook + dashboard + cron
+CMD ["bash", "-c", "python3 health-webhook.py & node dashboard.js & cron -f"]
