@@ -309,6 +309,7 @@ IMPORTANT RULES:
 - Think like a CEO who wants to disrupt the entire security-scan industry, not just improve a feature
 - The Feature Engineer reads your file and decides what to implement
 - Think like a startup CEO who wants to disrupt the security-scan industry
+- Read ${IDEAS_DIR}/rejected_ideas.log to see ideas that previously caused failures. Do NOT re-suggest failed ideas.
 
 IMPLEMENTED IDEAS TRACKING:
 - Read ${IDEAS_DIR}/implemented.log to see what the FEATURE ENGINEER has already done
@@ -317,7 +318,13 @@ IMPLEMENTED IDEAS TRACKING:
 - If something is marked done but the implementation is wrong, incomplete, or broken:
   → RE-ADD the idea to your radical_latest.md marked as: 🔄 REDO | [reason why it needs to be redone]
   → Also append to ${IDEAS_DIR}/implemented.log: ❌ UNDONE | [date] | radical | [idea] | [why it needs redo]
-- If done items look good, skip them entirely"
+- If done items look good, skip them entirely
+
+FORMAT: For each idea, include:
+- **Priority**: high / medium / low
+- **Impact**: 1-10 (10 = game-changing)
+- **Effort**: small / medium / large
+Order ideas by impact score (highest first)."
 
 # ── Run ───────────────────────────────────────────────────────────────────────
 echo "======================================" >> "$LOG_FILE"

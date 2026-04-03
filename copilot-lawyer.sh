@@ -257,7 +257,13 @@ IMPLEMENTED IDEAS TRACKING:
 - If something is marked done but the implementation is wrong, incomplete, or has legal issues:
   → RE-ADD the idea to your lawyer_latest.md marked as: 🔄 REDO | [reason why it needs to be redone]
   → Also append to ${IDEAS_DIR}/implemented.log: ❌ UNDONE | [date] | lawyer | [idea] | [why it needs redo]
-- If done items look good, skip them entirely"
+- If done items look good, skip them entirely
+
+FORMAT: For each idea, include:
+- **Priority**: high / medium / low
+- **Impact**: 1-10 (10 = game-changing)
+- **Effort**: small / medium / large
+Order ideas by impact score (highest first)."
 
 # ── Run ───────────────────────────────────────────────────────────────────────
 echo "======================================" >> "$LOG_FILE"

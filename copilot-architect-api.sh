@@ -134,6 +134,12 @@ RULES:
 - Skip ideas already in the IMPLEMENTED LOG below
 - Think like a senior backend engineer who optimizes for the Raspberry Pi 5 (4GB ARM)
 - Consider the full tool inventory when suggesting scanner improvements
+
+FORMAT: For each idea, include:
+- **Priority**: high / medium / low
+- **Impact**: 1-10 (10 = game-changing)
+- **Effort**: small / medium / large
+Order ideas by impact score (highest first).
 PROMPTEOF
 )
 

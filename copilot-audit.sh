@@ -3,6 +3,7 @@
 # Load central configuration
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 source "${SCRIPT_DIR}/config.sh"
+START_TIME=$(date +%s)
 
 # ── Config ────────────────────────────────────────────────────────────────────
 PROJECT_DIR="/opt/yourproject"
@@ -152,7 +153,14 @@ echo "Audit Started: $(date)" >> "$LOG_FILE"
 cd "$PROJECT_DIR" || { echo "ERROR: project dir not found: $PROJECT_DIR" >> "$LOG_FILE"; exit 1; }
 
 # ── Build context from recent changes ─────────────────────────────────
-RECENT_CHANGES=$(git -C "$PROJECT_DIR" log --oneline -10 2>/dev/null || echo "  (no git history)")
+# Get the commit from last audit run (stored in pipeline status)
+LAST_AUDIT_COMMIT=""
+[ -f "$SCRIPTS_DIR/.pipeline-status" ] && LAST_AUDIT_COMMIT=$(grep '^LAST_COMMIT=' "$SCRIPTS_DIR/.pipeline-status" 2>/dev/null | cut -d= -f2)
+if [ -n "$LAST_AUDIT_COMMIT" ]; then
+  RECENT_CHANGES=$(git -C "$PROJECT_DIR" log --oneline "${LAST_AUDIT_COMMIT}..HEAD" 2>/dev/null || echo "  (no changes since last audit)")
+else
+  RECENT_CHANGES=$(git -C "$PROJECT_DIR" log --oneline -10 2>/dev/null || echo "  (no git history)")
+fi
 LAST_DIFF=$(git -C "$PROJECT_DIR" diff HEAD~1 --stat 2>/dev/null | tail -20)
 LAST_MSG=$(git -C "$PROJECT_DIR" log -1 --pretty=format:"%s" 2>/dev/null || echo "  (no commits)")
 
@@ -263,6 +271,10 @@ PEOF
     echo "Pipeline: idle (no changes pushed)" >> "$LOG_FILE"
   fi
 fi
+
+# Track metrics
+DURATION=$(($(date +%s) - ${START_TIME:-$(date +%s)}))
+"${SCRIPTS_DIR}/track-metrics.sh" "audit" "$EXIT_CODE" "$DURATION" 2>/dev/null
 
 update_agent_status "idle" "" "$EXIT_CODE"
 exit $EXIT_CODE

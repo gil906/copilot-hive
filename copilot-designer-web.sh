@@ -132,6 +132,12 @@ RULES:
 - Skip ideas already in the IMPLEMENTED LOG below
 - Focus on HIGH-IMPACT visual and UX improvements
 - Be specific: mention exact CSS properties, animation keyframes, component names
+
+FORMAT: For each idea, include:
+- **Priority**: high / medium / low
+- **Impact**: 1-10 (10 = game-changing)
+- **Effort**: small / medium / large
+Order ideas by impact score (highest first).
 PROMPTEOF
 )
 

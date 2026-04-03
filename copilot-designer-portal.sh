@@ -133,6 +133,12 @@ RULES:
 - Skip ideas already in the IMPLEMENTED LOG below
 - Think like a product designer at a top SaaS cybersecurity company
 - Include mockup descriptions or ASCII layouts where helpful
+
+FORMAT: For each idea, include:
+- **Priority**: high / medium / low
+- **Impact**: 1-10 (10 = game-changing)
+- **Effort**: small / medium / large
+Order ideas by impact score (highest first).
 PROMPTEOF
 )
 

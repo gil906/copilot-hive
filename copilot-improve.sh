@@ -3,6 +3,7 @@
 # Load central configuration
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 source "${SCRIPT_DIR}/config.sh"
+START_TIME=$(date +%s)
 
 # ── Config ────────────────────────────────────────────────────────────────────
 PROJECT_DIR="/opt/yourproject"
@@ -208,6 +209,10 @@ RECENT_CHANGES=$(git -C "$PROJECT_DIR" log --oneline -10 2>/dev/null || echo "  
 LAST_DIFF=$(git -C "$PROJECT_DIR" diff HEAD~1 --stat 2>/dev/null | tail -20)
 LAST_MSG=$(git -C "$PROJECT_DIR" log -1 --pretty=format:"%s" 2>/dev/null || echo "  (no commits)")
 
+# Load recent failures for context
+RECENT_FAILURES=$(grep -E 'FAIL|ERROR|failed|reverted' "${SCRIPTS_DIR}/copilot-improve.log" 2>/dev/null | tail -10)
+AUDIT_FEEDBACK=$(grep -E 'fix|bug|issue|revert|broken' "${SCRIPTS_DIR}/copilot-audit.log" 2>/dev/null | tail -10)
+
 # ── Read ideas from research agents ──────────────────────────────────
 RADICAL_IDEAS=""
 if [ -f "${IDEAS_DIR}/radical_latest.md" ]; then
@@ -289,6 +294,12 @@ ${LAST_MSG}
 
 FILES CHANGED IN LAST COMMIT:
 ${LAST_DIFF}
+
+RECENT FAILURES (avoid repeating these mistakes):
+${RECENT_FAILURES:-  (none)}
+
+AUDITOR FEEDBACK (issues found by your partner):
+${AUDIT_FEEDBACK:-  (none)}
 
 ════════════════════════════════════════════════════════════════════
 IDEAS FROM RADICAL RESTRUCTURE AGENT (competitor research & AI trends):
@@ -478,6 +489,16 @@ PEOF
     echo "Pipeline: idle (no changes pushed)" >> "$LOG_FILE"
   fi
 fi
+
+# ── Track rejected ideas for future reference ─────────────────────────
+REJECTED_LOG="${IDEAS_DIR}/rejected_ideas.log"
+if [ "$EXIT_CODE" -ne 0 ]; then
+  echo "❌ FAILED | $(date '+%Y-%m-%d %H:%M') | improve | Agent failed (exit $EXIT_CODE) — ideas from this cycle may be problematic" >> "$REJECTED_LOG"
+fi
+
+# Track metrics
+DURATION=$(($(date +%s) - ${START_TIME:-$(date +%s)}))
+"${SCRIPTS_DIR}/track-metrics.sh" "improve" "$EXIT_CODE" "$DURATION" 2>/dev/null
 
 update_agent_status "improve" "idle" "" "$EXIT_CODE"
 exit $EXIT_CODE

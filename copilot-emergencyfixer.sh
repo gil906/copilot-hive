@@ -57,6 +57,30 @@ $(curl -sf -o /dev/null -w "API: %{http_code} (%{time_total}s)" --max-time 5 htt
 DIAGEOF
 )
 
+# Write structured diagnostics to JSON for better context passing
+python3 -c "
+import json, subprocess, datetime
+diag = {
+    'timestamp': datetime.datetime.now().isoformat(),
+    'failed_agent': '${FAILED_AGENT}',
+    'exit_code': ${FAILED_EXIT_CODE},
+    'containers': {},
+    'http_checks': {}
+}
+for c in ['${CONTAINER_API}', '${CONTAINER_WEB}', '${CONTAINER_DB:-}']:
+    if not c: continue
+    try:
+        s = subprocess.run(['docker', 'inspect', '-f', '{{.State.Status}}', c], capture_output=True, text=True, timeout=5)
+        diag['containers'][c] = {'status': s.stdout.strip(), 'running': s.stdout.strip() == 'running'}
+    except: diag['containers'][c] = {'status': 'unknown', 'running': False}
+for name, url in [('website', '${HEALTH_URL:-http://localhost:8080/}'), ('api', '${VERSION_URL:-http://localhost:8080/api/version}')]:
+    try:
+        r = subprocess.run(['curl', '-sf', '-o', '/dev/null', '-w', '%{http_code}', '--max-time', '5', url], capture_output=True, text=True, timeout=10)
+        diag['http_checks'][name] = {'url': url, 'status_code': r.stdout.strip()}
+    except: diag['http_checks'][name] = {'url': url, 'status_code': 'timeout'}
+with open('${SCRIPTS_DIR}/.diagnostics.json', 'w') as f: json.dump(diag, f, indent=2)
+" 2>/dev/null
+
 # ── Pause check ───────────────────────────────────────────────────────────────
 PAUSE_FILE="/opt/copilot-hive/.agents-paused"
 AGENT_PAUSE_FILE="/opt/copilot-hive/.agent-paused-emergencyfixer"
