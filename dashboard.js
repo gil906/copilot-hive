@@ -539,9 +539,15 @@ function showAddModal() {
 
       <div id="source-local">
         <div class="field">
-          <label>Local Path * <button type="button" class="discover-btn" onclick="discoverFolders()">🔍 Auto-discover projects</button></label>
+          <label>Local Path *</label>
           <input type="text" id="f-path" placeholder="/opt/my-saas-app">
-          <div id="folder-picker" style="display:none"></div>
+          <div style="margin-top:8px">
+            <div style="display:flex;gap:8px;align-items:center">
+              <input type="text" id="f-scan-dir" placeholder="Directory to scan (e.g. /mnt/media)" style="flex:1;padding:7px 12px;border:1px solid var(--border);border-radius:6px;background:#0d1225;color:var(--text);font-size:.82rem">
+              <button type="button" class="discover-btn" onclick="discoverFolders()">🔍 Discover</button>
+            </div>
+            <div id="folder-picker"></div>
+          </div>
         </div>
       </div>
       <div id="source-github" style="display:none">
@@ -756,34 +762,35 @@ async function submitProject(e) {
 async function discoverFolders() {
   const picker = document.getElementById('folder-picker');
   if (!picker) return;
-  picker.style.display = '';
-  picker.innerHTML = '<div style="padding:12px;text-align:center"><div class="spinner"></div> Scanning folders…</div>';
+  const scanInput = document.getElementById('f-scan-dir');
+  const scanDir = scanInput ? scanInput.value.trim() : '';
+  const qs = scanDir ? '?dir=' + encodeURIComponent(scanDir) : '';
+  picker.innerHTML = '<div style="padding:12px;text-align:center"><div class="spinner"></div> Scanning…</div>';
   try {
-    const data = await api('/api/discover-folders');
+    const data = await api('/api/discover-folders' + qs);
+    if (scanInput && !scanInput.value) scanInput.value = data.parent || '';
     if (!data.folders || !data.folders.length) {
-      picker.innerHTML = '<div style="padding:12px;color:var(--muted)">No folders found in ' + esc(data.parent) + '</div>';
+      picker.innerHTML = '<div style="padding:12px;color:var(--muted);font-size:.84rem">No folders found in ' + esc(data.parent) + '</div>';
       return;
     }
-    let html = '';
+    let html = '<div style="max-height:220px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;margin-top:8px;background:#050810">';
+    html += '<div style="padding:6px 12px;font-size:.72rem;color:var(--muted);border-bottom:1px solid var(--border)">📁 ' + esc(data.parent) + ' — ' + data.folders.length + ' folders</div>';
     for (const f of data.folders) {
-      const techTags = f.tech.map(t => '<span class="tech-tag' + (t==='Git'?' git':'') + '">' + t + '</span>').join('');
-      const gitTag = f.is_git ? '<span class="tech-tag git">Git</span>' : '';
       if (f.registered) {
-        html += '<div class="folder-item registered" title="Already registered">';
-        html += '<span class="folder-icon">📁</span>';
-        html += '<span class="folder-name">' + esc(f.name) + '</span>';
-        html += '<span class="registered-tag">already added</span>';
-        html += '</div>';
+        html += '<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid rgba(45,53,85,.3);font-size:.84rem;opacity:.4;cursor:default">';
+        html += '<span>📁</span><span style="flex:1;font-weight:600">' + esc(f.name) + '</span>';
+        html += '<span style="font-size:.7rem;font-style:italic;color:var(--muted)">already added</span></div>';
       } else {
-        html += '<div class="folder-item" onclick="selectFolder(\\'' + esc(f.path) + '\\',\\'' + esc(f.name) + '\\')">';
-        html += '<span class="folder-icon">📂</span>';
-        html += '<span class="folder-name">' + esc(f.name) + '</span>';
-        html += '<div class="folder-tech">' + gitTag + techTags + '</div>';
+        html += '<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid rgba(45,53,85,.3);font-size:.84rem;cursor:pointer;transition:background .15s" onmouseover="this.style.background=\\'rgba(0,212,255,.08)\\'" onmouseout="this.style.background=\\'\\'" onclick="selectFolder(\\'' + esc(f.path) + '\\',\\'' + esc(f.name) + '\\')">';
+        html += '<span>📂</span><span style="flex:1;font-weight:600">' + esc(f.name) + '</span>';
+        if (f.is_git) html += '<span style="padding:1px 6px;border-radius:4px;font-size:.68rem;font-weight:600;background:rgba(239,68,68,.12);color:#ef4444">Git</span>';
+        for (const t of f.tech) html += '<span style="padding:1px 6px;border-radius:4px;font-size:.68rem;font-weight:600;background:rgba(124,58,237,.15);color:#7c3aed">' + t + '</span>';
         html += '</div>';
       }
     }
-    picker.innerHTML = '<div class="folder-picker">' + html + '</div>';
-  } catch { picker.innerHTML = '<div style="padding:12px;color:var(--error)">Discovery failed</div>'; }
+    html += '</div>';
+    picker.innerHTML = html;
+  } catch (e) { picker.innerHTML = '<div style="padding:12px;color:var(--error);font-size:.84rem">Failed: ' + esc(e.message) + '</div>'; }
 }
 
 function selectFolder(folderPath, folderName) {
@@ -934,15 +941,16 @@ async function handleRequest(req, res) {
   }
 
   // ── GET /api/discover-folders ─────────────────────────────────────
-  // Lists directories one level up from HIVE_DIR for project autodiscovery
+  // Lists directories at a given path for project autodiscovery
+  // Query param ?dir=/some/path (defaults to parent of HIVE_DIR)
   if (method === 'GET' && pathname === '/api/discover-folders') {
-    const parentDir = path.dirname(HIVE_DIR);
+    const scanDir = url.searchParams.get('dir') || process.env.DISCOVER_DIR || path.dirname(HIVE_DIR);
     try {
-      const entries = fs.readdirSync(parentDir, { withFileTypes: true });
+      const entries = fs.readdirSync(scanDir, { withFileTypes: true });
       const folders = entries
         .filter(e => e.isDirectory() && !e.name.startsWith('.'))
         .map(e => {
-          const fullPath = path.join(parentDir, e.name);
+          const fullPath = path.join(scanDir, e.name);
           const isGit = fs.existsSync(path.join(fullPath, '.git'));
           const hasPkg = fs.existsSync(path.join(fullPath, 'package.json'));
           const hasReqs = fs.existsSync(path.join(fullPath, 'requirements.txt'));
@@ -957,15 +965,14 @@ async function handleRequest(req, res) {
           if (hasGoMod) tech.push('Go');
           if (hasDockerfile) tech.push('Docker');
           if (hasCompose) tech.push('Compose');
-          // Check if already registered
           const registry = readRegistry();
           const registered = registry.some(r => r.path === fullPath);
           return { name: e.name, path: fullPath, is_git: isGit, tech, has_dockerfile: hasDockerfile, has_compose: hasCompose, registered };
         })
         .sort((a, b) => a.name.localeCompare(b.name));
-      return json(res, 200, { parent: parentDir, folders });
+      return json(res, 200, { parent: scanDir, folders });
     } catch (err) {
-      return json(res, 500, { error: 'Cannot read directory: ' + parentDir });
+      return json(res, 500, { error: 'Cannot read directory: ' + scanDir, message: err.message });
     }
   }
 

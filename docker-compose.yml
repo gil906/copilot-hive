@@ -8,6 +8,7 @@ services:
     volumes:
       - ${DOCKER_SOCK:-/var/run/docker.sock}:/var/run/docker.sock
       - ${PROJECT_DIR:-/opt/yourproject}:/opt/yourproject
+      - ${DISCOVER_DIR:-/mnt/media}:/mnt/host:ro
       - ./ideas:/opt/copilot-hive/ideas
       - ./changelogs:/opt/copilot-hive/changelogs
       - ./projects:/opt/copilot-hive/projects
@@ -15,6 +16,7 @@ services:
     environment:
       - SCRIPTS_DIR=/opt/copilot-hive
       - PROJECT_DIR=/opt/yourproject
+      - DISCOVER_DIR=/mnt/host
       - WEBHOOK_AUTH_TOKEN=${WEBHOOK_AUTH_TOKEN:-}
       - SMARTTHINGS_PAT=${SMARTTHINGS_PAT:-}
     ports:
