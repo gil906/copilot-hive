@@ -6,6 +6,9 @@ LOG_FILE="/opt/copilot-hive/copilot-reporter.log"
 CHANGELOG_DIR="/opt/copilot-hive/changelogs"
 NOTIFY="/opt/copilot-hive/notify-smartthings.sh"
 COPILOT="/usr/local/bin/copilot"
+DB_USER="${DB_USER:-postgres}"
+DB_NAME="${DB_NAME:-yourproject}"
+DB_CONTAINER="${DB_CONTAINER:-yourproject-db}"
 
 # ── Pause check ───────────────────────────────────────────────────────────────
 PAUSE_FILE="/opt/copilot-hive/.agents-paused"
@@ -142,7 +145,7 @@ IMPROVE_FAILURES=$(grep -c "IMPROVE failed" /opt/copilot-hive/copilot-improve.lo
 AUDIT_FAILURES=$(grep -c "AUDIT failed" /opt/copilot-hive/copilot-audit.log 2>/dev/null || echo 0)
 
 # ── Database stats (scan activity) ────────────────────────────────────
-DB_CMD="docker exec yourproject-db psql -U dbuser -d yourproject -t -A"
+DB_CMD="docker exec ${DB_CONTAINER} psql -U ${DB_USER} -d ${DB_NAME} -t -A"
 
 if [ "$REPORT_TYPE" = "weekly" ]; then
   DATE_FILTER="created_at >= NOW() - INTERVAL '7 days'"

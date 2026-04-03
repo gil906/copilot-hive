@@ -20,6 +20,14 @@ if [ -f "$PAUSE_FILE" ] || [ -f "$AGENT_PAUSE_FILE" ]; then
   exit 0
 fi
 
+# Prevent concurrent runs of same agent
+LOCK_FILE="/tmp/copilot-designer-web.lock"
+exec 8>"$LOCK_FILE"
+if ! flock -n 8; then
+  echo "$(date) — SKIPPED: Another instance already running" >> "$LOG_FILE"
+  exit 0
+fi
+
 echo "======================================" >> "$LOG_FILE"
 echo "Website Designer Started: $(date)" >> "$LOG_FILE"
 
@@ -143,6 +151,13 @@ cd "$IDEAS_DIR" || exit 1
 
 EXIT_CODE=$?
 echo "Website Designer Finished: $(date) (exit: $EXIT_CODE)" >> "$LOG_FILE"
+
+# Validate output file was created with content
+OUTPUT_FILE="${IDEAS_DIR}/web_design_latest.md"
+if [ ! -f "$OUTPUT_FILE" ] || [ $(wc -l < "$OUTPUT_FILE" 2>/dev/null || echo 0) -lt 5 ]; then
+  echo "⚠ Output file missing or too short — agent may have failed silently" >> "$LOG_FILE"
+  "$NOTIFY" "Website Designer: output file empty or missing" >> "$LOG_FILE" 2>&1
+fi
 
 [ $EXIT_CODE -ne 0 ] && "$NOTIFY" "Website Designer agent failed (exit $EXIT_CODE)" >> "$LOG_FILE" 2>&1
 exit $EXIT_CODE

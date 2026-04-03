@@ -98,8 +98,14 @@ fi
 
 # Record successful deploy SHA
 if [ "$DEPLOY_OK" = true ]; then
-  echo "$CURRENT_SHA" > "$LAST_DEPLOY_SHA_FILE"
-  echo "Deploy successful. SHA recorded: $CURRENT_SHA" >> "$LOG_FILE"
+  # Double-check container health before recording SHA
+  HEALTH_CODE=$(curl -sf -o /dev/null -w "%{http_code}" --max-time 10 "${HEALTH_URL:-http://localhost:8080/}" 2>/dev/null)
+  if [ "$HEALTH_CODE" = "200" ]; then
+    echo "$CURRENT_SHA" > "$LAST_DEPLOY_SHA_FILE"
+    echo "Deploy successful and verified. SHA recorded: $CURRENT_SHA" >> "$LOG_FILE"
+  else
+    echo "Deploy appeared OK but health check failed (HTTP $HEALTH_CODE). SHA NOT recorded." >> "$LOG_FILE"
+  fi
 else
   echo "Deploy had issues. SHA NOT recorded (will retry next run)." >> "$LOG_FILE"
 fi

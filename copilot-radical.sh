@@ -17,6 +17,14 @@ if [ -f "$PAUSE_FILE" ] || [ -f "$AGENT_PAUSE_FILE" ]; then
   exit 0
 fi
 
+# Prevent concurrent runs of same agent
+LOCK_FILE="/tmp/copilot-radical.lock"
+exec 8>"$LOCK_FILE"
+if ! flock -n 8; then
+  echo "$(date) — SKIPPED: Another instance already running" >> "$LOG_FILE"
+  exit 0
+fi
+
 # ── Agent Status Helper ──────────────────────────────────────────────────────
 STATUS_FILE="/opt/copilot-hive/ideas/agent_status.json"
 update_agent_status() {

@@ -23,6 +23,7 @@ CONTAINER_WEB="yourproject-web"
 HEALTH_URL="http://localhost:8080/"
 VERSION_URL="http://localhost:8080/api/version"
 MAX_FIX_RETRIES=2  # original agent gets 2 tries, then emergency fixer
+LAST_GOOD_COMMIT=""  # Updated on successful deploy verification
 
 log() { echo "$(date '+%Y-%m-%d %H:%M:%S') — $*" >> "$LOG_FILE"; }
 
@@ -77,6 +78,7 @@ DEPLOY_VERIFIED=$DEPLOY_VERIFIED
 NEXT_AGENT=$NEXT_AGENT
 FIX_RESPONSIBILITY=$FIX_RESPONSIBILITY
 FIX_RETRIES=$FIX_RETRIES
+LAST_GOOD_COMMIT=$LAST_GOOD_COMMIT
 EOF
   flock -x 9
   mv "$tmp" "$STATUS_FILE"
@@ -122,7 +124,10 @@ verify_container() {
   local code; code=$(curl -sf -o /dev/null -w "%{http_code}" --max-time 10 "$HEALTH_URL" 2>/dev/null)
   [ "$code" != "200" ] && { echo "http_fail:$code"; return; }
 
-  if [ -n "$expected_build" ] && [ "$expected_build" != "unknown" ]; then
+  if [ -n "$expected_build" ]; then
+    if [ "$expected_build" = "unknown" ]; then
+      echo "invalid_build_id"; return
+    fi
     local running
     running=$(curl -sf --max-time 5 "$VERSION_URL" 2>/dev/null | \
       python3 -c "import sys,json; print(json.load(sys.stdin).get('build_id',''))" 2>/dev/null)
@@ -292,6 +297,7 @@ case "$PIPELINE_STATE" in
           log "✓ Deploy + version verified for ${LAST_BUILD_ID:0:12} (${ELAPSED}s)"
           PIPELINE_STATE="idle"; DEPLOY_VERIFIED="yes"
           FIX_RESPONSIBILITY=""; FIX_RETRIES=0  # clear fix state on success
+          LAST_GOOD_COMMIT="$LAST_COMMIT"  # Record known good version
           save_status
           launch_agent "$NEXT_AGENT" "normal"
         elif [ "$ELAPSED" -gt 600 ]; then
@@ -312,6 +318,7 @@ case "$PIPELINE_STATE" in
             log "Deploy timed out but container verified. Proceeding."
             PIPELINE_STATE="idle"; DEPLOY_VERIFIED="yes"
             FIX_RESPONSIBILITY=""; FIX_RETRIES=0
+            LAST_GOOD_COMMIT="$LAST_COMMIT"  # Record known good version
             save_status
             launch_agent "$NEXT_AGENT" "normal"
           else
@@ -329,6 +336,7 @@ case "$PIPELINE_STATE" in
             log "No workflow but container verified. Proceeding."
             PIPELINE_STATE="idle"; DEPLOY_VERIFIED="yes"
             FIX_RESPONSIBILITY=""; FIX_RETRIES=0
+            LAST_GOOD_COMMIT="$LAST_COMMIT"  # Record known good version
             save_status
             launch_agent "$NEXT_AGENT" "normal"
           elif [ "$ELAPSED" -gt 900 ]; then
@@ -366,6 +374,14 @@ case "$PIPELINE_STATE" in
     else
       if [ "$FIX_RESPONSIBILITY" = "emergency" ]; then
         # Emergency fixer also couldn't fix — give up, proceed with old container
+        # Attempt rollback to last known good commit
+        if [ -n "$LAST_GOOD_COMMIT" ]; then
+          log "Attempting rollback to last good commit ${LAST_GOOD_COMMIT:0:10}"
+          cd "$PROJECT_DIR" && git revert --no-commit HEAD 2>/dev/null && \
+            git commit -m "auto: rollback to last good state" 2>/dev/null && \
+            git push origin main 2>/dev/null && \
+            log "✓ Rollback pushed" || log "⚠ Rollback failed"
+        fi
         log "⚠ Emergency fixer didn't push a fix. Proceeding with old container."
         "$NOTIFY" "All fix attempts failed. Proceeding with old container." >> "$LOG_FILE" 2>&1
         PIPELINE_STATE="idle"; DEPLOY_VERIFIED="yes"

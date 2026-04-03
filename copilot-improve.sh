@@ -115,6 +115,13 @@ Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
   fi
 fi
 
+# Exit after urgent request — let next cycle handle normal features
+if [ -n "$URGENT_IDEA" ]; then
+  echo "$(date) — Exiting after urgent request. Normal features deferred to next cycle." >> "$LOG_FILE"
+  update_agent_status "improve" "idle" "" "0"
+  exit 0
+fi
+
 PROMPT="You are the DEVELOPER agent for Your Project (yourproject.example.com), a professional Docker-based web application security platform. You are part of an eleven-agent autonomous team:
 
 1. YOU (DEVELOPER) — the ONLY agent that writes code. Implements ALL ideas from research agents.
@@ -166,6 +173,22 @@ IMPORTANT RULES:
     ✅ DONE | [date] | [agent: radical/lawyer/compliance] | [idea summary]
   This tells all research agents that the idea has been implemented so they stop suggesting it."
 
+# ── Retry helper for network operations ──────────────────────────────
+retry() {
+  local max_attempts="${1:-3}" delay="${2:-5}" cmd="${@:3}"
+  local attempt=1
+  while [ $attempt -le $max_attempts ]; do
+    if eval "$cmd"; then
+      return 0
+    fi
+    echo "  Retry $attempt/$max_attempts failed, waiting ${delay}s..." >> "$LOG_FILE"
+    sleep "$delay"
+    delay=$((delay * 2))
+    attempt=$((attempt + 1))
+  done
+  return 1
+}
+
 # ── Run ───────────────────────────────────────────────────────────────────────
 echo "======================================" >> "$LOG_FILE"
 echo "Started: $(date)" >> "$LOG_FILE"
@@ -180,37 +203,37 @@ LAST_MSG=$(git -C "$PROJECT_DIR" log -1 --pretty=format:"%s" 2>/dev/null || echo
 # ── Read ideas from research agents ──────────────────────────────────
 RADICAL_IDEAS=""
 if [ -f "${IDEAS_DIR}/radical_latest.md" ]; then
-  RADICAL_IDEAS=$(head -200 "${IDEAS_DIR}/radical_latest.md" 2>/dev/null)
+  RADICAL_IDEAS=$(cat "${IDEAS_DIR}/radical_latest.md" 2>/dev/null)
   echo "Loaded Radical Restructure ideas ($(wc -l < "${IDEAS_DIR}/radical_latest.md") lines)" >> "$LOG_FILE"
 fi
 
 LAWYER_IDEAS=""
 if [ -f "${IDEAS_DIR}/lawyer_latest.md" ]; then
-  LAWYER_IDEAS=$(head -200 "${IDEAS_DIR}/lawyer_latest.md" 2>/dev/null)
+  LAWYER_IDEAS=$(cat "${IDEAS_DIR}/lawyer_latest.md" 2>/dev/null)
   echo "Loaded Lawyer recommendations ($(wc -l < "${IDEAS_DIR}/lawyer_latest.md") lines)" >> "$LOG_FILE"
 fi
 
 COMPLIANCE_IDEAS=""
 if [ -f "${IDEAS_DIR}/compliance_latest.md" ]; then
-  COMPLIANCE_IDEAS=$(head -200 "${IDEAS_DIR}/compliance_latest.md" 2>/dev/null)
+  COMPLIANCE_IDEAS=$(cat "${IDEAS_DIR}/compliance_latest.md" 2>/dev/null)
   echo "Loaded Compliance requirements ($(wc -l < "${IDEAS_DIR}/compliance_latest.md") lines)" >> "$LOG_FILE"
 fi
 
 WEB_DESIGN_IDEAS=""
 if [ -f "${IDEAS_DIR}/web_design_latest.md" ]; then
-  WEB_DESIGN_IDEAS=$(head -200 "${IDEAS_DIR}/web_design_latest.md" 2>/dev/null)
+  WEB_DESIGN_IDEAS=$(cat "${IDEAS_DIR}/web_design_latest.md" 2>/dev/null)
   echo "Loaded Website Designer ideas ($(wc -l < "${IDEAS_DIR}/web_design_latest.md") lines)" >> "$LOG_FILE"
 fi
 
 PORTAL_DESIGN_IDEAS=""
 if [ -f "${IDEAS_DIR}/portal_design_latest.md" ]; then
-  PORTAL_DESIGN_IDEAS=$(head -200 "${IDEAS_DIR}/portal_design_latest.md" 2>/dev/null)
+  PORTAL_DESIGN_IDEAS=$(cat "${IDEAS_DIR}/portal_design_latest.md" 2>/dev/null)
   echo "Loaded Portal Designer ideas ($(wc -l < "${IDEAS_DIR}/portal_design_latest.md") lines)" >> "$LOG_FILE"
 fi
 
 API_ARCHITECT_IDEAS=""
 if [ -f "${IDEAS_DIR}/api_architect_latest.md" ]; then
-  API_ARCHITECT_IDEAS=$(head -200 "${IDEAS_DIR}/api_architect_latest.md" 2>/dev/null)
+  API_ARCHITECT_IDEAS=$(cat "${IDEAS_DIR}/api_architect_latest.md" 2>/dev/null)
   echo "Loaded API Architect ideas ($(wc -l < "${IDEAS_DIR}/api_architect_latest.md") lines)" >> "$LOG_FILE"
 fi
 
@@ -237,7 +260,7 @@ fi
 
 IMPLEMENTED_LOG=""
 if [ -f "${IDEAS_DIR}/implemented.log" ]; then
-  IMPLEMENTED_LOG=$(tail -50 "${IDEAS_DIR}/implemented.log" 2>/dev/null)
+  IMPLEMENTED_LOG=$(tail -500 "${IDEAS_DIR}/implemented.log" 2>/dev/null)
   echo "Loaded implemented log ($(wc -l < "${IDEAS_DIR}/implemented.log") lines)" >> "$LOG_FILE"
 fi
 
@@ -391,7 +414,7 @@ if git -C "$PROJECT_DIR" status --porcelain | grep -q .; then
     else
       git -C "$PROJECT_DIR" add -A >> "$LOG_FILE" 2>&1
       git -C "$PROJECT_DIR" commit -m "auto: improve features $(date '+%Y-%m-%d %H:%M')" >> "$LOG_FILE" 2>&1
-      git -C "$PROJECT_DIR" push origin main >> "$LOG_FILE" 2>&1
+      retry 3 5 "git -C '$PROJECT_DIR' push origin main" >> "$LOG_FILE" 2>&1
       PUSH_CODE=$?
       if [ $PUSH_CODE -eq 0 ]; then
         PUSHED="yes"

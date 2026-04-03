@@ -5,6 +5,17 @@
 ENV_FILE="/opt/smartthings-mcp/.env"
 MESSAGE="${1:-Copilot script alert}"
 
+# Cleanup trap — ensure switch is turned off even if script is interrupted
+cleanup() {
+  if [ -n "$DEVICE_ID" ] && [ -n "$ST_TOKEN" ]; then
+    curl -sf -X POST "https://api.smartthings.com/v1/devices/${DEVICE_ID}/commands" \
+      -H "Authorization: Bearer ${ST_TOKEN}" \
+      -H "Content-Type: application/json" \
+      -d '{"commands":[{"component":"main","capability":"switch","command":"off"}]}' > /dev/null 2>&1
+  fi
+}
+trap cleanup EXIT INT TERM
+
 # Load PAT from .env
 ST_TOKEN=$(grep '^SMARTTHINGS_PAT=' "$ENV_FILE" | cut -d= -f2-)
 
@@ -30,6 +41,12 @@ if [ -z "$DEVICE_ID" ]; then
   exit 1
 fi
 
+# Set device status to carry the message (SmartThings automation can read this)
+curl -sf -X PUT "https://api.smartthings.com/v1/devices/${DEVICE_ID}" \
+  -H "Authorization: Bearer ${ST_TOKEN}" \
+  -H "Content-Type: application/json" \
+  -d "{\"label\": \"CopilotAlert: ${MESSAGE:0:100}\"}" > /dev/null 2>&1
+
 # Toggle ON (triggers automation)
 curl -sf -X POST "https://api.smartthings.com/v1/devices/${DEVICE_ID}/commands" \
   -H "Authorization: Bearer ${ST_TOKEN}" \
@@ -42,5 +59,11 @@ curl -sf -X POST "https://api.smartthings.com/v1/devices/${DEVICE_ID}/commands" 
   -H "Authorization: Bearer ${ST_TOKEN}" \
   -H "Content-Type: application/json" \
   -d '{"commands":[{"component":"main","capability":"switch","command":"off"}]}' > /dev/null 2>&1
+
+# Restore original label
+curl -sf -X PUT "https://api.smartthings.com/v1/devices/${DEVICE_ID}" \
+  -H "Authorization: Bearer ${ST_TOKEN}" \
+  -H "Content-Type: application/json" \
+  -d '{"label": "CopilotAlert"}' > /dev/null 2>&1
 
 echo "SmartThings notification sent: ${MESSAGE}"
