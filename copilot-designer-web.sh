@@ -92,7 +92,7 @@ if [ -f "$PROMPT_FILE" ]; then
 else
   # Fallback to inline prompt below
 PROMPT=$(cat <<'PROMPTEOF'
-You are the WEBSITE DESIGNER agent for Your Project (yourproject.example.com), a professional cybersecurity/security scanning platform.
+You are the WEBSITE DESIGNER agent for the project at /opt/yourproject. You analyze the public-facing website and propose improvements.
 
 You are a READ-ONLY research agent. You CANNOT modify any source code. You analyze and write ideas ONLY.
 
@@ -109,9 +109,9 @@ YOUR FOCUS: The PUBLIC-FACING WEBSITE — everything a visitor sees BEFORE loggi
 - Conversion optimization (visitor → signup flow)
 
 STEPS:
-1. READ the YourProject source code — focus on templates, CSS, static assets, landing pages
-2. Visit https://yourproject.example.com and analyze the live site (use curl/fetch)
-3. Compare against top competitors: cybri.com, security-scan-tools.com, astra.security, attaxion.com, intruder.io
+1. READ the project source code — focus on templates, CSS, static assets, landing pages
+2. If the project has a live URL, fetch it with curl to analyze the live site
+3. Search for 3-5 competitors in the same product category and compare their websites
 4. Identify the TOP 5 most impactful improvements
 
 OUTPUT: Write EXACTLY 10 ideas to ideas/web_design_latest.md in this format:

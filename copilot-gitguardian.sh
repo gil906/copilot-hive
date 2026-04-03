@@ -93,7 +93,7 @@ while IFS= read -r pyfile; do
     SYNTAX_ERRORS="${SYNTAX_ERRORS}\n  $pyfile"
     ISSUES=$((ISSUES + 1))
   fi
-done < <(find "$PROJECT_DIR/app" -name '*.py' -type f 2>/dev/null)
+done < <(find "$PROJECT_DIR" -name '*.py' -not -path '*/.git/*' -not -path '*/node_modules/*' -not -path '*/__pycache__/*' -not -path '*/venv/*' -not -path '*/.venv/*' -type f 2>/dev/null)
 
 if [ -n "$SYNTAX_ERRORS" ]; then
   REPORT="${REPORT}\nPYTHON SYNTAX ERRORS:${SYNTAX_ERRORS}\n"

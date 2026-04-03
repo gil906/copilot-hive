@@ -151,61 +151,23 @@ CONTAINER_STATUS=$(docker ps --filter name=yourproject --format "{{.Names}}: {{.
 IMPROVE_FAILURES=$(grep -c "IMPROVE failed" /opt/copilot-hive/copilot-improve.log 2>/dev/null || echo 0)
 AUDIT_FAILURES=$(grep -c "AUDIT failed" /opt/copilot-hive/copilot-audit.log 2>/dev/null || echo 0)
 
-# ── Database stats (scan activity) ────────────────────────────────────
+# ── Database stats ─────────────────────────────────────────────────────
 DB_CMD="docker exec ${DB_CONTAINER} psql -U ${DB_USER} -d ${DB_NAME} -t -A"
 
-if [ "$REPORT_TYPE" = "weekly" ]; then
-  DATE_FILTER="created_at >= NOW() - INTERVAL '7 days'"
-else
-  DATE_FILTER="created_at >= NOW() - INTERVAL '1 day'"
-fi
-
-SCAN_STATS=$($DB_CMD -c "
-  SELECT COUNT(*) || ' total, ' ||
-         COUNT(DISTINCT target) || ' unique targets, ' ||
-         COUNT(*) FILTER (WHERE status='completed') || ' completed, ' ||
-         COUNT(*) FILTER (WHERE status='pending') || ' pending, ' ||
-         COUNT(*) FILTER (WHERE status='failed') || ' failed'
-  FROM scan_requests WHERE ${DATE_FILTER};
+# Try to get activity stats from the database (tables vary by project)
+ACTIVITY_STATS=$($DB_CMD -c "
+  SELECT table_name FROM information_schema.tables 
+  WHERE table_schema = 'public' ORDER BY table_name;
 " 2>/dev/null || echo "unavailable")
 
-SCAN_STATS_ALLTIME=$($DB_CMD -c "
-  SELECT COUNT(*) || ' total scans, ' ||
-         COUNT(DISTINCT target) || ' unique targets'
-  FROM scan_requests;
+RECENT_ACTIVITY=$($DB_CMD -c "
+  SELECT schemaname, relname, n_tup_ins, n_tup_upd, n_tup_del 
+  FROM pg_stat_user_tables ORDER BY n_tup_ins DESC LIMIT 10;
 " 2>/dev/null || echo "unavailable")
 
-SCANNER_USAGE=$($DB_CMD -c "
-  SELECT scanner || ': ' || COUNT(*) || ' times'
-  FROM scan_requests, jsonb_array_elements_text(enabled_scanners::jsonb) AS scanner
-  WHERE ${DATE_FILTER}
-  GROUP BY scanner ORDER BY COUNT(*) DESC LIMIT 15;
-" 2>/dev/null | tr '\n' ', ' || echo "unavailable")
-
-SCANNER_USAGE_ALLTIME=$($DB_CMD -c "
-  SELECT scanner || ': ' || COUNT(*) || ' times'
-  FROM scan_requests, jsonb_array_elements_text(enabled_scanners::jsonb) AS scanner
-  GROUP BY scanner ORDER BY COUNT(*) DESC;
-" 2>/dev/null | tr '\n' ', ' || echo "unavailable")
-
-TARGETS_SCANNED=$($DB_CMD -c "
-  SELECT target || ' (' || scan_type || ', ' || status || ')'
-  FROM scan_requests WHERE ${DATE_FILTER}
-  ORDER BY created_at DESC LIMIT 20;
-" 2>/dev/null | tr '\n' ', ' || echo "none")
-
-VULN_BREAKDOWN=$($DB_CMD -c "
-  SELECT severity || ': ' || COUNT(*)
-  FROM vulnerabilities GROUP BY severity ORDER BY COUNT(*) DESC;
-" 2>/dev/null | tr '\n' ', ' || echo "none")
-
-TOTAL_VULNS=$($DB_CMD -c "SELECT COUNT(*) FROM vulnerabilities;" 2>/dev/null || echo "0")
-
-FINDING_COUNTS=$($DB_CMD -c "
-  SELECT target || ': ' || finding_count || ' findings'
-  FROM scan_reports WHERE ${DATE_FILTER}
-  ORDER BY created_at DESC LIMIT 10;
-" 2>/dev/null | tr '\n' ', ' || echo "none")
+DB_SIZE=$($DB_CMD -c "
+  SELECT pg_size_pretty(pg_database_size(current_database()));
+" 2>/dev/null || echo "unavailable")
 
 # ── Generate HTML report from template ────────────────────────────────────────
 generate_html_report() {
@@ -229,12 +191,12 @@ th{background:#2d2d44}.ok{color:#22c55e}.warn{color:#f59e0b}.err{color:#ef4444}
 HTMLEOF
 }
 
-PROMPT="You are the REPORTER agent for Your Project (yourproject.example.com). Your job is to compose a professional ${PERIOD} summary email.
+PROMPT="You are the REPORTER agent for the project at ${PROJECT_DIR}. Your job is to compose a professional ${PERIOD} summary email.
 
 You have the mailreporter MCP tool available. Use the send_report tool to send the email.
 
 Generate a RICH HTML email with the following data and send it using the send_report tool. The email should be visually stunning with:
-- Dark theme matching Your Project brand (background #0a0e1a, cards #1a1f35, accent #00d4ff)
+- Dark theme (background #0a0e1a, cards #1a1f35, accent #00d4ff)
 - Inline CSS only (no external stylesheets)
 - Summary statistics in colored metric cards
 - A progress/activity bar showing the pipeline runs
@@ -243,7 +205,7 @@ Generate a RICH HTML email with the following data and send it using the send_re
 - Container health status
 - Color-coded: green for success, red for failures, blue for info
 
-EMAIL SUBJECT: Your Project ${PERIOD} Report — $(date '+%b %d, %Y')
+EMAIL SUBJECT: ${PERIOD} Development Report — $(date '+%b %d, %Y')
 
 DATA TO INCLUDE:
 
@@ -276,33 +238,12 @@ FAILURE COUNTS (all time):
 - Improve failures: ${IMPROVE_FAILURES}
 - Audit failures: ${AUDIT_FAILURES}
 
-SCAN ACTIVITY (this ${PERIOD}):
-${SCAN_STATS}
+DATABASE INFO:
+- Tables: ${ACTIVITY_STATS}
+- Recent activity: ${RECENT_ACTIVITY}
+- Database size: ${DB_SIZE}
 
-SCAN ACTIVITY (all time):
-${SCAN_STATS_ALLTIME}
-
-TARGETS SCANNED (this ${PERIOD}):
-${TARGETS_SCANNED}
-
-SCANNER TOOLS USED (this ${PERIOD}):
-${SCANNER_USAGE}
-
-SCANNER TOOLS USED (all time):
-${SCANNER_USAGE_ALLTIME}
-
-SCAN REPORTS (this ${PERIOD}):
-${FINDING_COUNTS}
-
-VULNERABILITY DATABASE:
-- Total vulnerabilities tracked: ${TOTAL_VULNS}
-- Severity breakdown: ${VULN_BREAKDOWN}
-
-Include a SCAN ACTIVITY section in the email with:
-- A metric card showing total scans, unique targets, and completed/pending/failed counts
-- A list of targets scanned with their scan type and status
-- A bar or list showing which scanner tools were used and how many times
-- Vulnerability severity breakdown with colored badges (critical=red, high=orange, medium=yellow, low=blue, info=gray)
+Include a DATABASE ACTIVITY section in the email with the table activity statistics.
 
 Send the email now using the send_report MCP tool. Do not ask for confirmation."
 

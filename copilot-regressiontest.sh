@@ -45,26 +45,19 @@ check_json() {
 
 # Run HTTP checks in parallel
 echo "" >> "$LOG_FILE"
-echo "── Web Frontend Tests ──" >> "$LOG_FILE"
-check "Homepage"               "$WEB_BASE/" &
-check "Dashboard"              "$WEB_BASE/dashboard" &
-check "Portal"                 "$WEB_BASE/portal" &
-check "Tools"                  "$WEB_BASE/tools" &
-check "Pricing"                "$WEB_BASE/pricing" &
-check "About"                  "$WEB_BASE/about" &
-check "Demo"                   "$WEB_BASE/demo" &
-check "Services"               "$WEB_BASE/services" &
-check "Contact"                "$WEB_BASE/contact" &
-check "Blog"                   "$WEB_BASE/blog" &
-check "How It Works"           "$WEB_BASE/how-it-works" &
-check "API Docs"               "$WEB_BASE/api-docs" &
-check "Privacy"                "$WEB_BASE/privacy" &
-check "Terms"                  "$WEB_BASE/terms" &
+echo "── Core Health Tests ──" >> "$LOG_FILE"
+check "Homepage" "$WEB_BASE/" &
 
+# Test common pages — these will gracefully PASS or FAIL based on what exists
+for page in dashboard portal admin login about pricing services contact blog; do
+  check "$page" "$WEB_BASE/$page" &
+done
+
+# Test API endpoints if they exist
 echo "" >> "$LOG_FILE"
 echo "── API Endpoint Tests ──" >> "$LOG_FILE"
-check_json "GET /api/scans"    "$API_BASE/api/scans" &
-check      "API Health"        "$API_BASE/api/scans" &
+check "API Root" "$API_BASE/api/" &
+check "API Health" "$API_BASE/api/health" &
 
 wait
 
@@ -84,7 +77,7 @@ done < "$RESULTS_FILE"
 
 echo "" >> "$LOG_FILE"
 echo "── Container Health ──" >> "$LOG_FILE"
-for container in yourproject-api yourproject-web yourproject-db; do
+for container in ${CONTAINER_API:-yourproject-api} ${CONTAINER_WEB:-yourproject-web} ${CONTAINER_DB:-yourproject-db}; do
   TOTAL=$((TOTAL + 1))
   STATE=$(docker inspect -f '{{.State.Status}}' "$container" 2>/dev/null || echo "missing")
   HEALTH=$(docker inspect -f '{{.State.Health.Status}}' "$container" 2>/dev/null || echo "none")
@@ -122,7 +115,7 @@ CHANGELOG_FILE="${CHANGELOG_DIR}/regression_${TIMESTAMP}.txt"
   fi
   echo ""
   echo "Current containers:"
-  docker ps --format "  {{.Names}}\t{{.Status}}" --filter "name=yourproject" 2>/dev/null
+  docker ps --format "  {{.Names}}\t{{.Status}}" 2>/dev/null | head -20
 } > "$CHANGELOG_FILE"
 echo "Changelog saved: $CHANGELOG_FILE" >> "$LOG_FILE"
 
