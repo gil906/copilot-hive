@@ -20,7 +20,7 @@ banner() {
   echo -e "${CYAN}"
   echo "  ╔═══════════════════════════════════════════════╗"
   echo "  ║         🐝  Copilot Hive Installer  🐝        ║"
-  echo "  ║    Autonomous AI Agent Swarm Framework v1.5   ║"
+  echo "  ║    Autonomous AI Agent Swarm Framework v1.7   ║"
   echo "  ╚═══════════════════════════════════════════════╝"
   echo -e "${NC}"
 }

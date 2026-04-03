@@ -3,7 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const VERSION = '1.0.0';
+const VERSION = '1.7.0';
 const PROMPTS_DIR = path.join(__dirname, '..', 'prompts');
 const TEMPLATES_DIR = path.join(__dirname, '..', 'templates');
 
