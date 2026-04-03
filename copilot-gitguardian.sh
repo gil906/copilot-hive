@@ -5,7 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 source "${SCRIPT_DIR}/config.sh"
 
 # ── Config ────────────────────────────────────────────────────────────────────
-PROJECT_DIR="/opt/yourproject"
+PROJECT_DIR="${PROJECT_DIR:-/opt/yourproject}"
 LOG_FILE="/opt/copilot-hive/copilot-gitguardian.log"
 NOTIFY="/opt/copilot-hive/notify-smartthings.sh"
 CHANGELOG_DIR="/opt/copilot-hive/changelogs"

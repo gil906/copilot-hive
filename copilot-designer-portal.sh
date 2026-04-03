@@ -10,7 +10,7 @@ source "${SCRIPT_DIR}/config.sh"
 #  Writes 10 detailed ideas to ideas/portal_design_latest.md
 # ══════════════════════════════════════════════════════════════════════
 
-PROJECT_DIR="/opt/yourproject"
+PROJECT_DIR="${PROJECT_DIR:-/opt/yourproject}"
 LOG_FILE="/opt/copilot-hive/copilot-designer-portal.log"
 NOTIFY="/opt/copilot-hive/notify-smartthings.sh"
 IDEAS_DIR="/opt/copilot-hive/ideas"
@@ -144,6 +144,16 @@ Order ideas by impact score (highest first).
 PROMPTEOF
 )
 fi  # end prompt file fallback
+
+# Inject project-specific context if available
+if [ -n "${PROJECT_CONTEXT:-}" ]; then
+  PROMPT="${PROMPT}
+
+═══════════════════════════════════════════════════════════════════════
+PROJECT-SPECIFIC CONTEXT:
+${PROJECT_CONTEXT}
+═══════════════════════════════════════════════════════════════════════"
+fi
 
 CONTEXT=$(cat <<CTXEOF
 

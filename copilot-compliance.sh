@@ -5,7 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 source "${SCRIPT_DIR}/config.sh"
 
 # ── Config ────────────────────────────────────────────────────────────────────
-PROJECT_DIR="/opt/yourproject"
+PROJECT_DIR="${PROJECT_DIR:-/opt/yourproject}"
 LOG_FILE="/opt/copilot-hive/copilot-compliance.log"
 NOTIFY="/opt/copilot-hive/notify-smartthings.sh"
 IDEAS_DIR="/opt/copilot-hive/ideas"
@@ -287,6 +287,16 @@ IMPLEMENTED IDEAS TRACKING:
   → Update the item status back to 'partial' or 'missing' in compliance_checklist.json
 - If done items are properly implemented, skip them and focus on new gaps"
 fi  # end prompt file fallback
+
+# Inject project-specific context if available
+if [ -n "${PROJECT_CONTEXT:-}" ]; then
+  PROMPT="${PROMPT}
+
+═══════════════════════════════════════════════════════════════════════
+PROJECT-SPECIFIC CONTEXT:
+${PROJECT_CONTEXT}
+═══════════════════════════════════════════════════════════════════════"
+fi
 
 # ── Run ───────────────────────────────────────────────────────────────────────
 echo "======================================" >> "$LOG_FILE"

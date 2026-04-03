@@ -5,9 +5,9 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 source "${SCRIPT_DIR}/config.sh"
 
 # ── Config ────────────────────────────────────────────────────────────────────
-PROJECT_DIR="/opt/yourproject"
+PROJECT_DIR="${PROJECT_DIR:-/opt/yourproject}"
 LOG_FILE="/opt/copilot-hive/copilot-emergencyfixer.log"
-COMPOSE_FILE="/opt/docker-compose/yourproject.yml"
+COMPOSE_FILE="${COMPOSE_FILE:-/opt/docker-compose/yourproject.yml}"
 NOTIFY="/opt/copilot-hive/notify-smartthings.sh"
 CHANGELOG_DIR="/opt/copilot-hive/changelogs"
 COPILOT="/usr/local/bin/copilot"
@@ -214,6 +214,16 @@ IMPORTANT RULES:
 - Never commit secrets or tokens
 - Be fast and precise — the team depends on you to unblock them"
 fi  # end prompt file fallback
+
+# Inject project-specific context if available
+if [ -n "${PROJECT_CONTEXT:-}" ]; then
+  PROMPT="${PROMPT}
+
+═══════════════════════════════════════════════════════════════════════
+PROJECT-SPECIFIC CONTEXT:
+${PROJECT_CONTEXT}
+═══════════════════════════════════════════════════════════════════════"
+fi
 
 # ── Run ───────────────────────────────────────────────────────────────────────
 echo "======================================" >> "$LOG_FILE"

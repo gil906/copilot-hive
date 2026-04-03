@@ -5,7 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 source "${SCRIPT_DIR}/config.sh"
 
 # ── Config ────────────────────────────────────────────────────────────────────
-PROJECT_DIR="/opt/yourproject"
+PROJECT_DIR="${PROJECT_DIR:-/opt/yourproject}"
 LOG_FILE="/opt/copilot-hive/copilot-reporter.log"
 CHANGELOG_DIR="/opt/copilot-hive/changelogs"
 NOTIFY="/opt/copilot-hive/notify-smartthings.sh"
@@ -246,6 +246,16 @@ DATABASE INFO:
 Include a DATABASE ACTIVITY section in the email with the table activity statistics.
 
 Send the email now using the send_report MCP tool. Do not ask for confirmation."
+
+# Inject project-specific context if available
+if [ -n "${PROJECT_CONTEXT:-}" ]; then
+  PROMPT="${PROMPT}
+
+═══════════════════════════════════════════════════════════════════════
+PROJECT-SPECIFIC CONTEXT:
+${PROJECT_CONTEXT}
+═══════════════════════════════════════════════════════════════════════"
+fi
 
 # ── Run ───────────────────────────────────────────────────────────────────────
 update_agent_status "running" "Running Copilot CLI"

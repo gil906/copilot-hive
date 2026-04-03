@@ -5,7 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 source "${SCRIPT_DIR}/config.sh"
 
 # ── Config ────────────────────────────────────────────────────────────────────
-PROJECT_DIR="/opt/yourproject"
+PROJECT_DIR="${PROJECT_DIR:-/opt/yourproject}"
 LOG_FILE="/opt/copilot-hive/copilot-lawyer.log"
 NOTIFY="/opt/copilot-hive/notify-smartthings.sh"
 IDEAS_DIR="/opt/copilot-hive/ideas"
@@ -104,6 +104,8 @@ Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
 fi
 
 # ── Legal reference URLs ─────────────────────────────────────────────────────
+LEGAL_SITES="${LEGAL_SITES:-}"
+if [ -z "$LEGAL_SITES" ]; then
 LEGAL_SITES="
 HOW TO FIND COMPETITOR LEGAL PAGES:
   1. First, read the project codebase to understand what kind of product/service this is
@@ -120,6 +122,7 @@ ANALYSIS APPROACH:
   - What compliance certifications do they mention?
   - What refund/cancellation policies do they have?
 "
+fi
 
 # ── Load prompt from file if available ────────────────────────────────
 PROMPT_FILE="${SCRIPTS_DIR}/prompts/lawyer.md"
@@ -250,6 +253,16 @@ FORMAT: For each idea, include:
 - **Effort**: small / medium / large
 Order ideas by impact score (highest first)."
 fi  # end prompt file fallback
+
+# Inject project-specific context if available
+if [ -n "${PROJECT_CONTEXT:-}" ]; then
+  PROMPT="${PROMPT}
+
+═══════════════════════════════════════════════════════════════════════
+PROJECT-SPECIFIC CONTEXT:
+${PROJECT_CONTEXT}
+═══════════════════════════════════════════════════════════════════════"
+fi
 
 # ── Run ───────────────────────────────────────────────────────────────────────
 echo "======================================" >> "$LOG_FILE"

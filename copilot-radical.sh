@@ -5,7 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 source "${SCRIPT_DIR}/config.sh"
 
 # ── Config ────────────────────────────────────────────────────────────────────
-PROJECT_DIR="/opt/yourproject"
+PROJECT_DIR="${PROJECT_DIR:-/opt/yourproject}"
 LOG_FILE="/opt/copilot-hive/copilot-radical.log"
 NOTIFY="/opt/copilot-hive/notify-smartthings.sh"
 IDEAS_DIR="/opt/copilot-hive/ideas"
@@ -105,7 +105,7 @@ fi
 
 # ── Competitor & research sites ──────────────────────────────────────────────
 # The agent will scrape these and discover more on its own
-COMPETITOR_SITES="
+COMPETITOR_SITES="${COMPETITOR_SITES:-
 HOW TO FIND COMPETITORS:
   1. Read the project codebase to understand what it does (product type, target market, features)
   2. Search the web for 'best [product category] tools/platforms [current year]'
@@ -119,7 +119,7 @@ COMPETITOR ANALYSIS APPROACH:
   - Compare their features, pricing, and UX against this project
   - Note what they do better and what gaps exist
   - Identify industry trends and emerging features
-"
+}"
 
 # ── Load prompt from file if available ────────────────────────────────
 PROMPT_FILE="${SCRIPTS_DIR}/prompts/radical-visionary.md"
@@ -277,6 +277,16 @@ FORMAT: For each idea, include:
 - **Effort**: small / medium / large
 Order ideas by impact score (highest first)."
 fi  # end prompt file fallback
+
+# Inject project-specific context if available
+if [ -n "${PROJECT_CONTEXT:-}" ]; then
+  PROMPT="${PROMPT}
+
+═══════════════════════════════════════════════════════════════════════
+PROJECT-SPECIFIC CONTEXT:
+${PROJECT_CONTEXT}
+═══════════════════════════════════════════════════════════════════════"
+fi
 
 # ── Run ───────────────────────────────────────────────────────────────────────
 echo "======================================" >> "$LOG_FILE"
