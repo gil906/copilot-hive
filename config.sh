@@ -41,5 +41,10 @@ export LOG_DIR="${SCRIPTS_DIR}"
 # ── Agent Status ─────────────────────────────────────────────────────
 export AGENT_STATUS_FILE="${IDEAS_DIR}/agent_status.json"
 
+# ── Hive Health ──────────────────────────────────────────────────────
+# The dispatcher writes a heartbeat to .dispatcher-heartbeat every run.
+# Monitor with Uptime Kuma: check if file is <120s old
+# Example: [ $(($(date +%s) - $(cat .dispatcher-heartbeat))) -lt 120 ]
+
 # ── Ensure directories exist ─────────────────────────────────────────
 mkdir -p "${IDEAS_DIR}" "${CHANGELOG_DIR}"

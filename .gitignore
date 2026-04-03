@@ -22,6 +22,9 @@ ideas/agent_status.json
 ideas/implemented.log
 ideas/*_latest.md
 
+# Metrics
+metrics.jsonl
+
 # OS
 .DS_Store
 Thumbs.db

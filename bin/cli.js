@@ -128,6 +128,35 @@ function initScaffold(dir) {
   });
   console.log('  Placeholders replaced with defaults (edit to customize)');
 
+  // Create project structure
+  const dirs = ['ideas', 'changelogs'];
+  dirs.forEach(d => {
+    const dir = path.join(targetDir, d);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+      console.log(`  Created ${d}/`);
+    }
+  });
+
+  // Create sample admin_ideas.json
+  const ideasFile = path.join(targetDir, 'ideas', 'admin_ideas.json');
+  if (!fs.existsSync(ideasFile)) {
+    fs.writeFileSync(ideasFile, JSON.stringify({
+      ideas: [
+        { id: "example-1", title: "Example idea", description: "Replace with your ideas", urgent: false, status: "pending" }
+      ]
+    }, null, 2));
+    console.log('  Created ideas/admin_ideas.json');
+  }
+
+  // Copy .env.example as .env
+  const envExample = path.join(__dirname, '..', '.env.example');
+  const envFile = path.join(targetDir, '.env');
+  if (fs.existsSync(envExample) && !fs.existsSync(envFile)) {
+    fs.copyFileSync(envExample, envFile);
+    console.log('  Created .env (edit with your tokens)');
+  }
+
   console.log(`\n✅ Scaffolded! Next steps:`);
   console.log(`   1. Edit templates/ — set PROJECT_DIR and other paths`);
   console.log(`   2. Read prompts/ — customize for your project`);
