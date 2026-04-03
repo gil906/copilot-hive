@@ -191,13 +191,43 @@ button{cursor:pointer;font-family:inherit}
 .dropdown-menu{position:absolute;right:0;top:100%;margin-top:4px;background:var(--card);border:1px solid var(--border);border-radius:8px;min-width:180px;z-index:50;box-shadow:0 8px 30px rgba(0,0,0,.4);overflow:hidden}
 .dropdown-menu button{display:block;width:100%;text-align:left;padding:10px 16px;background:none;border:none;color:var(--text);font-size:.85rem;transition:background .15s}
 .dropdown-menu button:hover{background:var(--card-hover)}
+
+/* Project Selector */
+.project-select{padding:8px 14px;border:1px solid var(--border);border-radius:8px;background:#0d1225;color:var(--text);font-size:.88rem;font-family:inherit;min-width:180px;cursor:pointer;transition:border-color .2s}
+.project-select:focus{outline:none;border-color:var(--accent)}
+.project-select option{background:var(--card);color:var(--text)}
+
+/* Agent Status Panel */
+.agent-status-panel{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:22px;margin-bottom:24px}
+.agent-status-panel h3{font-size:.95rem;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.agent-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.agent-card{background:rgba(13,18,37,.6);border:1px solid var(--border);border-radius:10px;padding:14px;transition:all .25s}
+.agent-card:hover{border-color:var(--accent);background:rgba(13,18,37,.9)}
+.agent-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.agent-card-name{font-size:.85rem;font-weight:700}
+.agent-status-dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+.agent-status-dot.running{background:var(--warning);box-shadow:0 0 8px var(--warning);animation:pulse 1.5s infinite}
+.agent-status-dot.idle{background:var(--success)}
+.agent-status-dot.error{background:var(--error)}
+.agent-status-dot.unknown{background:var(--muted)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.agent-card-step{font-size:.72rem;color:var(--muted);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.agent-card-time{font-size:.7rem;color:var(--muted);margin-top:2px}
+.agent-card-actions{margin-top:8px}
+.agent-card-actions button{padding:4px 10px;font-size:.72rem;border-radius:4px;background:rgba(124,58,237,.15);color:var(--purple);border:1px solid transparent;cursor:pointer;transition:all .2s}
+.agent-card-actions button:hover{border-color:var(--purple);background:rgba(124,58,237,.25)}
 </style>
 </head>
 <body>
 
 <header class="header">
   <h1><span class="bee">🐝</span> Copilot Hive <span class="sub">— Project Manager</span></h1>
-  <button class="btn btn-primary" onclick="showAddModal()">+ Add Project</button>
+  <div style="display:flex;align-items:center;gap:12px">
+    <select id="project-selector" class="project-select" onchange="onProjectSelect(this.value)">
+      <option value="">All Projects</option>
+    </select>
+    <button class="btn btn-primary" onclick="showAddModal()">+ Add Project</button>
+  </div>
 </header>
 
 <div class="container" id="app"></div>
@@ -229,6 +259,7 @@ async function api(path, opts) {
 
 // ── Rendering ──────────────────────────────────────────────────────
 function render() {
+  populateProjectSelector();
   if (currentView === 'list') renderList();
   else if (currentView === 'detail') renderDetail();
 }
@@ -302,7 +333,7 @@ async function renderDetail() {
       </dl>
     </div>
 
-    <div class="detail-section">
+    <div class="detail-section" id="detail-agents-section">
       <h3>Agents</h3>
       <div class="agent-chips">
         \${agents.map(a=>'<span class="agent-chip" onclick="runAgent(\\''+esc(p.id)+'\\',\\''+a+'\\')" title="Click to run">▶ '+agentLabel(a)+'</span>').join('')}
@@ -321,6 +352,34 @@ async function renderDetail() {
     </div>
   </div>\`;
   app.innerHTML = html;
+
+  // Fetch and display agent status in detail view
+  (async () => {
+    try {
+      const data = await fetch(API + '/api/projects/' + currentProject + '/agents').then(r=>r.json());
+      const agentsSection = document.getElementById('detail-agents-section');
+      if (agentsSection && data.agents) {
+        let statusHtml = '<h3>Agents</h3><div class="agent-grid">';
+        for (const [name, info] of Object.entries(data.agents)) {
+          const status = info.status || 'unknown';
+          const dotClass = status === 'running' ? 'running' : status === 'idle' ? 'idle' : 'unknown';
+          const statusLabel = status === 'running' ? '🔄 Running' : status === 'idle' ? '✅ Idle' : '⏳ Unknown';
+          const step = info.current_step || '';
+          const lastTime = info.status === 'running' ? info.started_at : info.finished_at;
+          statusHtml += '<div class="agent-card">';
+          statusHtml += '<div class="agent-card-header"><span class="agent-card-name">' + agentLabel(name) + '</span>';
+          statusHtml += '<span class="agent-status-dot ' + dotClass + '"></span></div>';
+          statusHtml += '<div style="font-size:.78rem;color:' + (status==='running'?'var(--warning)':'var(--success)') + '">' + statusLabel + '</div>';
+          if (step) statusHtml += '<div class="agent-card-step">' + esc(step) + '</div>';
+          if (lastTime) statusHtml += '<div class="agent-card-time">' + (status==='running'?'Started ':'Finished ') + timeAgo(lastTime) + '</div>';
+          statusHtml += '<div class="agent-card-actions"><button onclick="runAgent(\\''+esc(currentProject)+'\\',\\''+name+'\\')">▶ Run</button></div>';
+          statusHtml += '</div>';
+        }
+        statusHtml += '</div>';
+        agentsSection.innerHTML = statusHtml;
+      }
+    } catch {}
+  })();
 
   if (p.setup_status === 'running') startPolling();
   else stopPolling();
@@ -532,8 +591,102 @@ async function submitProject(e) {
   }
 }
 
+// ── Project Selector ──────────────────────────────────────────────
+let selectedProject = '';
+let agentPollTimer = null;
+
+async function populateProjectSelector() {
+  const sel = document.getElementById('project-selector');
+  if (!sel) return;
+  let projects = [];
+  try { projects = await api('/api/projects'); } catch { return; }
+  const current = sel.value;
+  sel.innerHTML = '<option value="">All Projects</option>';
+  for (const p of projects) {
+    const opt = document.createElement('option');
+    opt.value = p.id;
+    opt.textContent = p.name || p.id;
+    if (p.id === current || p.id === selectedProject) opt.selected = true;
+    sel.appendChild(opt);
+  }
+}
+
+function onProjectSelect(projectId) {
+  selectedProject = projectId;
+  stopAgentPolling();
+  if (currentView === 'list') render();
+  if (projectId) startAgentPolling();
+}
+
+// ── Agent Status Panel ────────────────────────────────────────────
+function timeAgo(iso) {
+  if (!iso) return '';
+  const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+  if (diff < 60) return diff + 's ago';
+  if (diff < 3600) return Math.floor(diff/60) + 'm ago';
+  if (diff < 86400) return Math.floor(diff/3600) + 'h ago';
+  return Math.floor(diff/86400) + 'd ago';
+}
+
+function renderAgentStatus(agents, projectId) {
+  if (!agents || !Object.keys(agents).length) return '';
+  const projectName = document.getElementById('project-selector')?.selectedOptions?.[0]?.textContent || projectId;
+  let html = '<div class="agent-status-panel">';
+  html += '<h3>🤖 Agent Status — ' + esc(projectName) + '</h3>';
+  html += '<div class="agent-grid">';
+  for (const [name, info] of Object.entries(agents)) {
+    const status = info.status || 'unknown';
+    const dotClass = status === 'running' ? 'running' : status === 'idle' ? 'idle' : status === 'error' ? 'error' : 'unknown';
+    const statusLabel = status === 'running' ? '🔄 Running' : status === 'idle' ? '✅ Idle' : status === 'error' ? '❌ Error' : '⏳ Unknown';
+    const step = info.current_step || '';
+    const lastTime = info.status === 'running' ? info.started_at : info.finished_at;
+    const exitCode = info.last_exit_code;
+    html += '<div class="agent-card">';
+    html += '<div class="agent-card-header">';
+    html += '<span class="agent-card-name">' + agentLabel(name) + '</span>';
+    html += '<span class="agent-status-dot ' + dotClass + '" title="' + status + '"></span>';
+    html += '</div>';
+    html += '<div style="font-size:.78rem;color:' + (status==='running'?'var(--warning)':status==='idle'?'var(--success)':'var(--muted)') + '">' + statusLabel + '</div>';
+    if (step) html += '<div class="agent-card-step" title="' + esc(step) + '">' + esc(step) + '</div>';
+    if (lastTime) html += '<div class="agent-card-time">' + (status==='running'?'Started ':'Finished ') + timeAgo(lastTime) + '</div>';
+    if (exitCode !== undefined && exitCode !== null && status !== 'running') html += '<div class="agent-card-time">Exit code: ' + exitCode + '</div>';
+    html += '<div class="agent-card-actions"><button onclick="runAgent(\\''+esc(projectId)+'\\',\\''+name+'\\')">▶ Run</button></div>';
+    html += '</div>';
+  }
+  html += '</div></div>';
+  return html;
+}
+
+async function fetchAndRenderAgentStatus() {
+  if (!selectedProject) return;
+  try {
+    const data = await fetch(API + '/api/projects/' + selectedProject + '/agents').then(r => r.json());
+    let panel = document.getElementById('agent-status-container');
+    if (!panel) {
+      panel = document.createElement('div');
+      panel.id = 'agent-status-container';
+      const app = document.getElementById('app');
+      app.insertBefore(panel, app.firstChild);
+    }
+    panel.innerHTML = renderAgentStatus(data.agents, selectedProject);
+  } catch {}
+}
+
+function startAgentPolling() {
+  stopAgentPolling();
+  fetchAndRenderAgentStatus();
+  agentPollTimer = setInterval(fetchAndRenderAgentStatus, 5000);
+}
+
+function stopAgentPolling() {
+  if (agentPollTimer) { clearInterval(agentPollTimer); agentPollTimer = null; }
+  const panel = document.getElementById('agent-status-container');
+  if (panel) panel.innerHTML = '';
+}
+
 // ── Init ───────────────────────────────────────────────────────────
 render();
+populateProjectSelector();
 </script>
 </body>
 </html>`;
@@ -697,6 +850,51 @@ async function handleRequest(req, res) {
       });
       child.unref();
       return json(res, 200, { status: 'launched', agent, project: id });
+    }
+
+    // GET /api/projects/:id/agents
+    if (method === 'GET' && sub === '/agents') {
+      let agentData = {};
+
+      const projectStatusFile = path.join(PROJECTS_DIR, id, 'ideas', 'agent_status.json');
+      const globalStatusFile = path.join(HIVE_DIR, 'ideas', 'agent_status.json');
+
+      for (const sf of [projectStatusFile, globalStatusFile]) {
+        try {
+          const raw = JSON.parse(fs.readFileSync(sf, 'utf8'));
+          if (raw.agents && Object.keys(raw.agents).length > 0) {
+            agentData = raw.agents;
+            break;
+          }
+        } catch {}
+      }
+
+      try {
+        const { execSync } = require('child_process');
+        const ps = execSync('ps aux', { encoding: 'utf8', timeout: 3000 });
+        const projectAgents = ['improve', 'audit', 'radical', 'lawyer', 'compliance',
+                               'designer-web', 'designer-portal', 'architect-api',
+                               'emergencyfixer', 'reporter', 'deployer', 'gitguardian', 'regressiontest'];
+        for (const agent of projectAgents) {
+          const pattern = new RegExp('copilot-' + agent + '.*--project\\s+' + id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+          const patternDefault = new RegExp('copilot-' + agent + '\\.sh');
+          if (pattern.test(ps) || (!id && patternDefault.test(ps))) {
+            if (!agentData[agent]) agentData[agent] = {};
+            agentData[agent].status = 'running';
+            agentData[agent].detected_via = 'process';
+          }
+        }
+      } catch {}
+
+      const cfg = readProjectConfig(id);
+      const enabledAgents = cfg ? (cfg.agents || []) : [];
+
+      const result = {};
+      for (const a of enabledAgents) {
+        result[a] = agentData[a] || { status: 'idle' };
+      }
+
+      return json(res, 200, { agents: result, project_id: id });
     }
   }
 

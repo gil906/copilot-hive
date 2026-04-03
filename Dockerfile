@@ -3,7 +3,7 @@
 #  Runs the dispatcher and all agent scripts via cron
 # ══════════════════════════════════════════════════════════════════════
 # Multi-arch support: builds on AMD64, ARM64 (Apple Silicon, Raspberry Pi)
-ARG TARGETPLATFORM=linux/amd64
+ARG TARGETPLATFORM=linux/arm64
 FROM --platform=${TARGETPLATFORM} ubuntu:22.04
 
 RUN apt-get update && apt-get install -y \
