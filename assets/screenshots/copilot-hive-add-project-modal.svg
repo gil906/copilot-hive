@@ -66,9 +66,9 @@
     <text x="406" y="464" class="small">Directory to scan: /mnt/media</text>
     <rect x="780" y="450" width="126" height="30" rx="7" fill="#0d1225" stroke="#00d4ff"/>
     <text x="814" y="470" class="body">Discover</text>
-    <text x="406" y="502" class="body">Security Advisor</text>
+    <text x="406" y="502" class="body">Project Alpha</text>
     <text x="604" y="502" class="small">git • node • docker</text>
-    <text x="406" y="530" class="body">Wedding Website</text>
+    <text x="406" y="530" class="body">Customer Portal</text>
     <text x="604" y="530" class="small">git • static • nginx</text>
 
     <text x="388" y="584" class="label">DESCRIPTION *</text>

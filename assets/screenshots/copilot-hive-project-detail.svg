@@ -35,25 +35,25 @@
     <text x="72" y="160" class="sub">← Back to projects</text>
 
     <rect x="70" y="186" width="1460" height="726" rx="18" fill="#1a1f35" stroke="#2d3555"/>
-    <text x="100" y="230" class="title">Security Advisor</text>
+    <text x="100" y="230" class="title">Project Alpha</text>
     <rect x="356" y="206" width="92" height="28" rx="14" fill="#16361f"/>
     <text x="381" y="224" class="badge" fill="#22c55e">Active</text>
-    <text x="100" y="256" class="small">/mnt/media/security-advisor</text>
+    <text x="100" y="256" class="small">/srv/apps/project-alpha</text>
 
     <text x="100" y="306" class="label">CONFIGURATION</text>
     <line x1="100" y1="318" x2="1490" y2="318" stroke="#2d3555"/>
     <text x="100" y="352" class="small">ID</text>
-    <text x="232" y="352" class="body">security-advisor</text>
+    <text x="232" y="352" class="body">project-alpha</text>
     <text x="100" y="382" class="small">GitHub</text>
-    <text x="232" y="382" class="body">gil906/security-advisor</text>
+    <text x="232" y="382" class="body">your-org/project-alpha</text>
     <text x="100" y="412" class="small">Description</text>
-    <text x="232" y="412" class="body">Security advisory web app with API, web UI, Postgres, and automated fixes.</text>
+    <text x="232" y="412" class="body">Web platform with an API, frontend, and automated maintenance workflows.</text>
     <text x="100" y="442" class="small">Compose File</text>
-    <text x="232" y="442" class="small">/mnt/media/docker-compose/security-advisor.yml</text>
+    <text x="232" y="442" class="small">/srv/compose/project-alpha.yml</text>
     <text x="100" y="472" class="small">Health URL</text>
-    <text x="232" y="472" class="body">https://security.findthebreach.com/health</text>
+    <text x="232" y="472" class="body">https://app.example.internal/health</text>
     <text x="100" y="502" class="small">Containers</text>
-    <text x="232" y="502" class="body">api: security-advisor-api, web: security-advisor-web, db: postgres</text>
+    <text x="232" y="502" class="body">api: app-api, web: app-web, db: app-db</text>
 
     <text x="100" y="552" class="label">AGENTS</text>
     <line x1="100" y1="564" x2="1490" y2="564" stroke="#2d3555"/>
@@ -85,9 +85,9 @@
     <text x="1022" y="552" class="label">DISCOVERED COMPETITORS</text>
     <line x1="1022" y1="564" x2="1490" y2="564" stroke="#2d3555"/>
     <rect x="1022" y="588" width="468" height="148" rx="12" fill="#0d1225" stroke="#2d3555"/>
-    <text x="1044" y="620" class="body">🔍 Vanta</text>
-    <text x="1044" y="648" class="body">🔍 Drata</text>
-    <text x="1044" y="676" class="body">🔍 Secureframe</text>
+    <text x="1044" y="620" class="body">🔍 Competitor One</text>
+    <text x="1044" y="648" class="body">🔍 Competitor Two</text>
+    <text x="1044" y="676" class="body">🔍 Competitor Three</text>
 
     <text x="100" y="760" class="label">SETUP LOG</text>
     <line x1="100" y1="772" x2="1490" y2="772" stroke="#2d3555"/>

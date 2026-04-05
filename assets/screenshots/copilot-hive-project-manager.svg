@@ -59,9 +59,9 @@
     <text x="1402" y="163" class="stat-label">Copilot Hive v1.7.0</text>
 
     <rect x="58" y="198" width="590" height="216" rx="16" fill="#1a1f35" stroke="#2d3555"/>
-    <text x="84" y="234" class="section">Security Advisor</text>
-    <text x="84" y="257" class="small">/mnt/media/security-advisor</text>
-    <text x="84" y="292" class="body">Production app with API, Postgres, alerts, and security automation.</text>
+    <text x="84" y="234" class="section">Project Alpha</text>
+    <text x="84" y="257" class="small">/srv/apps/project-alpha</text>
+    <text x="84" y="292" class="body">Production web app with an API, dashboard, and automated release checks.</text>
     <rect x="84" y="314" width="94" height="28" rx="14" fill="rgba(34,197,94,0.15)"/>
     <text x="109" y="332" class="badge-text" fill="#22c55e">Active</text>
     <text x="198" y="332" class="small">8 agents enabled</text>
@@ -73,9 +73,9 @@
     <text x="336" y="382" class="body" fill="#fee2e2">Delete</text>
 
     <rect x="58" y="432" width="590" height="216" rx="16" fill="#1a1f35" stroke="#2d3555"/>
-    <text x="84" y="468" class="section">Wedding Website</text>
-    <text x="84" y="491" class="small">/mnt/media/wedding-site-en</text>
-    <text x="84" y="526" class="body">Localized site with automated design, audits, and deployment checks.</text>
+    <text x="84" y="468" class="section">Customer Portal</text>
+    <text x="84" y="491" class="small">/srv/apps/customer-portal</text>
+    <text x="84" y="526" class="body">Client-facing site with design reviews, audits, and deployment checks.</text>
     <rect x="84" y="548" width="126" height="28" rx="14" fill="rgba(245,158,11,0.15)"/>
     <text x="107" y="566" class="badge-text" fill="#f59e0b">Setting up</text>
     <text x="228" y="566" class="small">discovering competitors</text>
@@ -85,27 +85,27 @@
     <text x="212" y="616" class="body">Logs</text>
 
     <rect x="58" y="666" width="590" height="216" rx="16" fill="#1a1f35" stroke="#2d3555"/>
-    <text x="84" y="702" class="section">AI Music Match</text>
-    <text x="84" y="725" class="small">/mnt/media/ai-music-match</text>
-    <text x="84" y="760" class="body">Matcher UI with health checks, deployment hooks, and on-demand agents.</text>
+    <text x="84" y="702" class="section">Analytics API</text>
+    <text x="84" y="725" class="small">/srv/apps/analytics-api</text>
+    <text x="84" y="760" class="body">Internal service with health checks, deployment hooks, and on-demand agents.</text>
     <rect x="84" y="782" width="96" height="28" rx="14" fill="rgba(148,163,184,0.12)"/>
     <text x="110" y="800" class="badge-text" fill="#94a3b8">Pending</text>
     <text x="196" y="800" class="small">not configured yet</text>
 
     <rect x="678" y="198" width="854" height="684" rx="18" fill="#1a1f35" stroke="#2d3555"/>
-    <text x="708" y="236" class="section">Security Advisor</text>
+    <text x="708" y="236" class="section">Project Alpha</text>
     <rect x="868" y="214" width="92" height="28" rx="14" fill="rgba(34,197,94,0.15)"/>
     <text x="893" y="232" class="badge-text" fill="#22c55e">Active</text>
-    <text x="708" y="260" class="small">/mnt/media/security-advisor</text>
+    <text x="708" y="260" class="small">/srv/apps/project-alpha</text>
 
     <text x="708" y="306" class="label">CONFIGURATION</text>
     <line x1="708" y1="318" x2="1498" y2="318" stroke="#2d3555"/>
     <text x="708" y="350" class="small">GitHub</text>
-    <text x="840" y="350" class="body">gil906/security-advisor</text>
+    <text x="840" y="350" class="body">your-org/project-alpha</text>
     <text x="708" y="380" class="small">Compose File</text>
-    <text x="840" y="380" class="body">/mnt/media/docker-compose/security-advisor.yml</text>
+    <text x="840" y="380" class="body">/srv/compose/project-alpha.yml</text>
     <text x="708" y="410" class="small">Health URL</text>
-    <text x="840" y="410" class="body">https://security.findthebreach.com/health</text>
+    <text x="840" y="410" class="body">https://app.example.internal/health</text>
     <text x="708" y="440" class="small">Containers</text>
     <text x="840" y="440" class="body">api, web, db</text>
 
