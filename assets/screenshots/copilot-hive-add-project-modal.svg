@@ -1,0 +1,124 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 980" role="img" aria-labelledby="title desc">
+  <title id="title">Copilot Hive add project modal</title>
+  <desc id="desc">A dark mode modal in Copilot Hive for creating a project, choosing source, health URL, container names, and enabled agents.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#070b16"/>
+      <stop offset="100%" stop-color="#11182d"/>
+    </linearGradient>
+    <linearGradient id="hdr" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0%" stop-color="#0d1225"/>
+      <stop offset="100%" stop-color="#131836"/>
+    </linearGradient>
+    <linearGradient id="btn" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#00d4ff"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#020617" flood-opacity="0.55"/>
+    </filter>
+    <style>
+      .title { fill: #e2e8f0; font: 700 28px system-ui, -apple-system, sans-serif; }
+      .sub { fill: #94a3b8; font: 500 17px system-ui, -apple-system, sans-serif; }
+      .label { fill: #94a3b8; font: 600 13px system-ui, -apple-system, sans-serif; }
+      .body { fill: #cbd5e1; font: 500 15px system-ui, -apple-system, sans-serif; }
+      .small { fill: #94a3b8; font: 500 12px ui-monospace, SFMono-Regular, monospace; }
+      .btnText { fill: #f8fafc; font: 700 14px system-ui, -apple-system, sans-serif; }
+      .check { fill: #e2e8f0; font: 600 13px system-ui, -apple-system, sans-serif; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="980" fill="url(#bg)"/>
+
+  <rect x="0" y="0" width="1600" height="980" fill="#000000" opacity="0.35"/>
+  <g opacity="0.18">
+    <rect x="70" y="70" width="1460" height="72" rx="18" fill="url(#hdr)"/>
+    <rect x="70" y="168" width="420" height="200" rx="16" fill="#1a1f35"/>
+    <rect x="510" y="168" width="420" height="200" rx="16" fill="#1a1f35"/>
+    <rect x="950" y="168" width="420" height="200" rx="16" fill="#1a1f35"/>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="345" y="68" width="910" height="844" rx="20" fill="#1a1f35" stroke="#2d3555"/>
+    <text x="388" y="118" class="title">Add New Project</text>
+    <text x="388" y="144" class="sub">Register a repo, map health checks, and choose which Hive agents should work on it.</text>
+
+    <text x="388" y="188" class="label">PROJECT NAME *</text>
+    <rect x="388" y="198" width="320" height="42" rx="8" fill="#0d1225" stroke="#2d3555"/>
+    <text x="406" y="224" class="body">My SaaS App</text>
+
+    <text x="732" y="188" class="label">PROJECT ID</text>
+    <rect x="732" y="198" width="210" height="42" rx="8" fill="#0d1225" stroke="#2d3555"/>
+    <text x="750" y="224" class="body">my-saas-app</text>
+
+    <text x="388" y="274" class="label">SOURCE</text>
+    <rect x="388" y="286" width="554" height="48" rx="10" fill="#10172c" stroke="#2d3555"/>
+    <circle cx="420" cy="310" r="8" fill="#00d4ff"/>
+    <text x="438" y="315" class="body">Existing local path</text>
+    <circle cx="654" cy="310" r="8" fill="none" stroke="#94a3b8"/>
+    <text x="672" y="315" class="body">Clone from GitHub</text>
+
+    <text x="388" y="370" class="label">LOCAL PATH *</text>
+    <rect x="388" y="382" width="554" height="42" rx="8" fill="#0d1225" stroke="#2d3555"/>
+    <text x="406" y="408" class="body">/mnt/media/my-saas-app</text>
+
+    <rect x="388" y="438" width="554" height="112" rx="10" fill="#050810" stroke="#2d3555"/>
+    <text x="406" y="464" class="small">Directory to scan: /mnt/media</text>
+    <rect x="780" y="450" width="126" height="30" rx="7" fill="#0d1225" stroke="#00d4ff"/>
+    <text x="814" y="470" class="body">Discover</text>
+    <text x="406" y="502" class="body">Security Advisor</text>
+    <text x="604" y="502" class="small">git • node • docker</text>
+    <text x="406" y="530" class="body">Wedding Website</text>
+    <text x="604" y="530" class="small">git • static • nginx</text>
+
+    <text x="388" y="584" class="label">DESCRIPTION *</text>
+    <rect x="388" y="596" width="554" height="92" rx="8" fill="#0d1225" stroke="#2d3555"/>
+    <text x="406" y="624" class="body">Describe what the app does, its stack, target users, and any</text>
+    <text x="406" y="648" class="body">special context the agents should understand before working on it.</text>
+
+    <text x="970" y="188" class="label">DOCKER COMPOSE FILE</text>
+    <rect x="970" y="198" width="250" height="42" rx="8" fill="#0d1225" stroke="#2d3555"/>
+    <text x="988" y="224" class="small">/opt/docker-compose/app.yml</text>
+
+    <text x="970" y="274" class="label">HEALTH CHECK URL</text>
+    <rect x="970" y="286" width="250" height="42" rx="8" fill="#0d1225" stroke="#2d3555"/>
+    <text x="988" y="312" class="small">http://localhost:8080/</text>
+
+    <rect x="1232" y="286" width="110" height="42" rx="8" fill="#0d1225" stroke="#00d4ff"/>
+    <text x="1259" y="312" class="body">Auto-port</text>
+
+    <text x="970" y="370" class="label">CONTAINER NAMES (OPTIONAL)</text>
+    <rect x="970" y="382" width="118" height="42" rx="8" fill="#0d1225" stroke="#2d3555"/>
+    <text x="987" y="408" class="body">API</text>
+    <rect x="1100" y="382" width="118" height="42" rx="8" fill="#0d1225" stroke="#2d3555"/>
+    <text x="1117" y="408" class="body">Web</text>
+    <rect x="1230" y="382" width="118" height="42" rx="8" fill="#0d1225" stroke="#2d3555"/>
+    <text x="1247" y="408" class="body">DB</text>
+
+    <text x="970" y="462" class="label">AGENTS</text>
+    <rect x="970" y="474" width="334" height="214" rx="10" fill="#0d1225" stroke="#2d3555"/>
+
+    <rect x="990" y="496" width="16" height="16" rx="3" fill="#00d4ff"/>
+    <text x="1018" y="509" class="check">Feature Engineer</text>
+    <rect x="990" y="526" width="16" height="16" rx="3" fill="#00d4ff"/>
+    <text x="1018" y="539" class="check">Auditor</text>
+    <rect x="990" y="556" width="16" height="16" rx="3" fill="#00d4ff"/>
+    <text x="1018" y="569" class="check">Radical Visionary</text>
+    <rect x="990" y="586" width="16" height="16" rx="3" fill="#00d4ff"/>
+    <text x="1018" y="599" class="check">Lawyer</text>
+    <rect x="990" y="616" width="16" height="16" rx="3" fill="#00d4ff"/>
+    <text x="1018" y="629" class="check">Compliance Officer</text>
+    <rect x="990" y="646" width="16" height="16" rx="3" fill="#00d4ff"/>
+    <text x="1018" y="659" class="check">Website Designer</text>
+    <rect x="1142" y="496" width="16" height="16" rx="3" fill="#00d4ff"/>
+    <text x="1170" y="509" class="check">Portal Designer</text>
+    <rect x="1142" y="526" width="16" height="16" rx="3" fill="#00d4ff"/>
+    <text x="1170" y="539" class="check">API Architect</text>
+
+    <line x1="388" y1="736" x2="1218" y2="736" stroke="#2d3555"/>
+    <rect x="1008" y="764" width="112" height="44" rx="10" fill="#0d1225" stroke="#2d3555"/>
+    <text x="1040" y="791" class="body">Cancel</text>
+    <rect x="1134" y="764" width="154" height="44" rx="10" fill="url(#btn)"/>
+    <text x="1172" y="791" class="btnText">Create Project</text>
+  </g>
+</svg>

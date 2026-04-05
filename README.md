@@ -49,6 +49,8 @@ Three layers work together:
 
 > This repo's actual interface is the **Copilot Hive Project Manager** in `dashboard.js` — a dark-mode control panel for registering projects, checking agent status, launching runs, and reviewing setup logs.
 
+### 🧭 Fleet Overview
+
 <div align="center">
 <img src="assets/screenshots/copilot-hive-project-manager.svg" alt="Copilot Hive Project Manager UI — project cards, agent status, and live logs" width="100%">
 </div>
@@ -56,6 +58,24 @@ Three layers work together:
 <br/>
 
 From one screen you can wire up a repo, choose which agents should work on it, and watch the hive operate in real time.
+
+### 🚀 Add Project Modal
+
+The setup flow lets you register a local app or clone from GitHub, map health checks and containers, and choose exactly which Hive agents should be enabled for that project.
+
+<div align="center">
+<img src="assets/screenshots/copilot-hive-add-project-modal.svg" alt="Copilot Hive add project modal with source selection, paths, health URL, and agent checkboxes" width="100%">
+</div>
+
+<br/>
+
+### 🔎 Project Detail, Agents, and Logs
+
+Each project gets its own control surface with configuration, per-agent run buttons, competitor discovery, and a live setup log for troubleshooting.
+
+<div align="center">
+<img src="assets/screenshots/copilot-hive-project-detail.svg" alt="Copilot Hive project detail page with configuration, agents, competitors, and setup log" width="100%">
+</div>
 
 ---
 

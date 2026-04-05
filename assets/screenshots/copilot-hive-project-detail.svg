@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 980" role="img" aria-labelledby="title desc">
+  <title id="title">Copilot Hive project detail view</title>
+  <desc id="desc">Project detail screen showing configuration, per-agent status cards, discovered competitors, and a live setup log.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#070b16"/>
+      <stop offset="100%" stop-color="#121a30"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0%" stop-color="#0d1225"/>
+      <stop offset="100%" stop-color="#131836"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#020617" flood-opacity="0.45"/>
+    </filter>
+    <style>
+      .title { fill: #e2e8f0; font: 700 30px system-ui, -apple-system, sans-serif; }
+      .sub { fill: #94a3b8; font: 500 16px system-ui, -apple-system, sans-serif; }
+      .section { fill: #e2e8f0; font: 700 18px system-ui, -apple-system, sans-serif; }
+      .label { fill: #94a3b8; font: 600 13px system-ui, -apple-system, sans-serif; }
+      .body { fill: #cbd5e1; font: 500 15px system-ui, -apple-system, sans-serif; }
+      .small { fill: #94a3b8; font: 500 12px ui-monospace, SFMono-Regular, monospace; }
+      .mono { fill: #8be9fd; font: 500 12px ui-monospace, SFMono-Regular, monospace; }
+      .badge { font: 700 12px system-ui, -apple-system, sans-serif; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="980" fill="url(#bg)"/>
+  <g filter="url(#shadow)">
+    <rect x="30" y="30" width="1540" height="920" rx="24" fill="#0a0e1a" stroke="#25314e"/>
+    <rect x="50" y="50" width="1500" height="72" rx="18" fill="url(#panel)" stroke="#2d3555"/>
+    <text x="82" y="95" class="title">Copilot Hive</text>
+    <text x="318" y="95" class="sub">Project Detail</text>
+
+    <text x="72" y="160" class="sub">← Back to projects</text>
+
+    <rect x="70" y="186" width="1460" height="726" rx="18" fill="#1a1f35" stroke="#2d3555"/>
+    <text x="100" y="230" class="title">Security Advisor</text>
+    <rect x="356" y="206" width="92" height="28" rx="14" fill="#16361f"/>
+    <text x="381" y="224" class="badge" fill="#22c55e">Active</text>
+    <text x="100" y="256" class="small">/mnt/media/security-advisor</text>
+
+    <text x="100" y="306" class="label">CONFIGURATION</text>
+    <line x1="100" y1="318" x2="1490" y2="318" stroke="#2d3555"/>
+    <text x="100" y="352" class="small">ID</text>
+    <text x="232" y="352" class="body">security-advisor</text>
+    <text x="100" y="382" class="small">GitHub</text>
+    <text x="232" y="382" class="body">gil906/security-advisor</text>
+    <text x="100" y="412" class="small">Description</text>
+    <text x="232" y="412" class="body">Security advisory web app with API, web UI, Postgres, and automated fixes.</text>
+    <text x="100" y="442" class="small">Compose File</text>
+    <text x="232" y="442" class="small">/mnt/media/docker-compose/security-advisor.yml</text>
+    <text x="100" y="472" class="small">Health URL</text>
+    <text x="232" y="472" class="body">https://security.findthebreach.com/health</text>
+    <text x="100" y="502" class="small">Containers</text>
+    <text x="232" y="502" class="body">api: security-advisor-api, web: security-advisor-web, db: postgres</text>
+
+    <text x="100" y="552" class="label">AGENTS</text>
+    <line x1="100" y1="564" x2="1490" y2="564" stroke="#2d3555"/>
+
+    <rect x="100" y="588" width="210" height="98" rx="12" fill="#0d1225" stroke="#2d3555"/>
+    <circle cx="284" cy="612" r="6" fill="#f59e0b"/>
+    <text x="120" y="616" class="body">Feature Engineer</text>
+    <text x="120" y="642" class="small">Running</text>
+    <text x="120" y="664" class="small">Current step: updating dashboard docs</text>
+
+    <rect x="326" y="588" width="210" height="98" rx="12" fill="#0d1225" stroke="#2d3555"/>
+    <circle cx="510" cy="612" r="6" fill="#22c55e"/>
+    <text x="346" y="616" class="body">Auditor</text>
+    <text x="346" y="642" class="small">Idle</text>
+    <text x="346" y="664" class="small">Finished 11 minutes ago</text>
+
+    <rect x="552" y="588" width="210" height="98" rx="12" fill="#0d1225" stroke="#2d3555"/>
+    <circle cx="736" cy="612" r="6" fill="#22c55e"/>
+    <text x="572" y="616" class="body">Portal Designer</text>
+    <text x="572" y="642" class="small">Idle</text>
+    <text x="572" y="664" class="small">Ready to run</text>
+
+    <rect x="778" y="588" width="210" height="98" rx="12" fill="#0d1225" stroke="#2d3555"/>
+    <circle cx="962" cy="612" r="6" fill="#22c55e"/>
+    <text x="798" y="616" class="body">API Architect</text>
+    <text x="798" y="642" class="small">Idle</text>
+    <text x="798" y="664" class="small">Ready to run</text>
+
+    <text x="1022" y="552" class="label">DISCOVERED COMPETITORS</text>
+    <line x1="1022" y1="564" x2="1490" y2="564" stroke="#2d3555"/>
+    <rect x="1022" y="588" width="468" height="148" rx="12" fill="#0d1225" stroke="#2d3555"/>
+    <text x="1044" y="620" class="body">🔍 Vanta</text>
+    <text x="1044" y="648" class="body">🔍 Drata</text>
+    <text x="1044" y="676" class="body">🔍 Secureframe</text>
+
+    <text x="100" y="760" class="label">SETUP LOG</text>
+    <line x1="100" y1="772" x2="1490" y2="772" stroke="#2d3555"/>
+    <rect x="100" y="792" width="1000" height="96" rx="12" fill="#050810" stroke="#2d3555"/>
+    <text x="122" y="822" class="mono">[09:42:11] scanning project structure...</text>
+    <text x="122" y="846" class="mono">[09:42:15] found compose file and health endpoint</text>
+    <text x="122" y="870" class="mono">[09:42:22] launching Feature Engineer for queued idea</text>
+
+    <rect x="1130" y="792" width="112" height="38" rx="8" fill="#0d1225" stroke="#2d3555"/>
+    <text x="1163" y="816" class="body">Edit</text>
+    <rect x="1256" y="792" width="132" height="38" rx="8" fill="#0d1225" stroke="#2d3555"/>
+    <text x="1290" y="816" class="body">Re-run Setup</text>
+    <rect x="1402" y="792" width="88" height="38" rx="8" fill="#2b1120" stroke="#ef4444"/>
+    <text x="1428" y="816" class="body" fill="#fee2e2">Delete</text>
+  </g>
+</svg>
