@@ -45,67 +45,17 @@ Three layers work together:
 
 ---
 
-## 📸 Management Portal — Live Screenshots
+## 📸 Copilot Hive UI
 
-> The Copilot Swarm Management Portal gives you full visibility and control over your AI agent fleet from a single dark-mode dashboard.
-
-### 📊 Fleet Dashboard
-
-Real-time overview of all projects, pipeline state, agent activity, and run history — at a glance.
+> This repo's actual interface is the **Copilot Hive Project Manager** in `dashboard.js` — a dark-mode control panel for registering projects, checking agent status, launching runs, and reviewing setup logs.
 
 <div align="center">
-<img src="assets/screenshots/swarm-dashboard.png" alt="Fleet Dashboard — pipeline state, agent stats, recent runs" width="100%">
+<img src="assets/screenshots/copilot-hive-project-manager.svg" alt="Copilot Hive Project Manager UI — project cards, agent status, and live logs" width="100%">
 </div>
 
 <br/>
 
-### 🤖 Agent Control Center
-
-Manage all 14 agents — run on-demand, view schedules, reorder pipeline, check status. Full control from one panel.
-
-<div align="center">
-<img src="assets/screenshots/swarm-agent-control.png" alt="Agent Control — 14 agents with status, schedules, and actions" width="100%">
-</div>
-
-<br/>
-
-### 📈 Analytics
-
-Track agent activity distribution, ideas created, bugs reported, and performance metrics across your entire fleet.
-
-<div align="center">
-<img src="assets/screenshots/swarm-analytics.png" alt="Analytics — agent activity chart, ideas and bug metrics" width="100%">
-</div>
-
-<br/>
-
-### 📝 Changes Log
-
-Every change made by every agent — searchable, filterable, with full descriptions and timestamps.
-
-<div align="center">
-<img src="assets/screenshots/swarm-changes.png" alt="Changes — complete log of all agent-made changes" width="100%">
-</div>
-
-<br/>
-
-### 💡🐛 Ideas & Bug Tracking
-
-Submit ideas for agents to implement, track bugs for auto-resolution. Filter by status, priority, and source (admin vs agent).
-
-<div align="center">
-<img src="assets/screenshots/swarm-ideas-bugs.png" alt="Ideas & Bugs — dual-panel idea and bug management" width="100%">
-</div>
-
-<br/>
-
-### 🏥 Health Monitor & Self-Healing
-
-Live container health checks with a 7-level escalation ladder (L0 Grace → L6 Emergency). Automatic self-healing with detailed logs.
-
-<div align="center">
-<img src="assets/screenshots/swarm-health-monitor.png" alt="Health Monitor — container health, escalation ladder, self-healing logs" width="100%">
-</div>
+From one screen you can wire up a repo, choose which agents should work on it, and watch the hive operate in real time.
 
 ---
 

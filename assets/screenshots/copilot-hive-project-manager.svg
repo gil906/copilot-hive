@@ -1,0 +1,152 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 960" role="img" aria-labelledby="title desc">
+  <title id="title">Copilot Hive Project Manager UI</title>
+  <desc id="desc">Dark themed dashboard showing Copilot Hive project cards, agent status, configuration details, and live setup logs.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#070b16"/>
+      <stop offset="55%" stop-color="#0a0e1a"/>
+      <stop offset="100%" stop-color="#141b33"/>
+    </linearGradient>
+    <linearGradient id="header" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0%" stop-color="#0d1225"/>
+      <stop offset="100%" stop-color="#131836"/>
+    </linearGradient>
+    <linearGradient id="button" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#00d4ff"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="14" stdDeviation="18" flood-color="#020617" flood-opacity="0.45"/>
+    </filter>
+    <style>
+      .title { fill: #e2e8f0; font: 700 30px system-ui, -apple-system, sans-serif; }
+      .sub { fill: #94a3b8; font: 500 18px system-ui, -apple-system, sans-serif; }
+      .section { fill: #e2e8f0; font: 700 18px system-ui, -apple-system, sans-serif; }
+      .label { fill: #94a3b8; font: 600 13px system-ui, -apple-system, sans-serif; letter-spacing: 0.06em; }
+      .body { fill: #cbd5e1; font: 500 15px system-ui, -apple-system, sans-serif; }
+      .small { fill: #94a3b8; font: 500 12px ui-monospace, SFMono-Regular, monospace; }
+      .mono { fill: #8be9fd; font: 500 12px ui-monospace, SFMono-Regular, monospace; }
+      .btn { fill: #f8fafc; font: 700 14px system-ui, -apple-system, sans-serif; }
+      .stat { fill: #e2e8f0; font: 700 18px system-ui, -apple-system, sans-serif; }
+      .stat-label { fill: #94a3b8; font: 600 13px system-ui, -apple-system, sans-serif; }
+      .badge-text { font: 700 12px system-ui, -apple-system, sans-serif; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="960" fill="url(#bg)"/>
+
+  <g filter="url(#shadow)">
+    <rect x="28" y="28" width="1544" height="904" rx="24" fill="#0a0e1a" stroke="#25314e"/>
+
+    <rect x="48" y="48" width="1504" height="74" rx="18" fill="url(#header)" stroke="#2d3555"/>
+    <text x="78" y="94" class="title">Copilot Hive</text>
+    <text x="318" y="94" class="sub">Project Manager</text>
+
+    <rect x="1178" y="66" width="168" height="38" rx="9" fill="#0d1225" stroke="#2d3555"/>
+    <text x="1202" y="90" class="body">All Projects</text>
+    <text x="1320" y="90" class="body">v</text>
+
+    <rect x="1362" y="62" width="164" height="46" rx="12" fill="url(#button)"/>
+    <text x="1401" y="90" class="btn">+ Add Project</text>
+
+    <rect x="48" y="136" width="1504" height="44" rx="12" fill="#10172c" stroke="#2d3555"/>
+    <text x="72" y="163" class="stat">3</text>
+    <text x="96" y="163" class="stat-label">projects</text>
+    <text x="188" y="163" class="stat">2</text>
+    <text x="212" y="163" class="stat-label">active</text>
+    <text x="286" y="163" class="stat">1</text>
+    <text x="310" y="163" class="stat-label">setting up</text>
+    <text x="1402" y="163" class="stat-label">Copilot Hive v1.7.0</text>
+
+    <rect x="58" y="198" width="590" height="216" rx="16" fill="#1a1f35" stroke="#2d3555"/>
+    <text x="84" y="234" class="section">Security Advisor</text>
+    <text x="84" y="257" class="small">/mnt/media/security-advisor</text>
+    <text x="84" y="292" class="body">Production app with API, Postgres, alerts, and security automation.</text>
+    <rect x="84" y="314" width="94" height="28" rx="14" fill="rgba(34,197,94,0.15)"/>
+    <text x="109" y="332" class="badge-text" fill="#22c55e">Active</text>
+    <text x="198" y="332" class="small">8 agents enabled</text>
+    <rect x="84" y="360" width="88" height="34" rx="8" fill="#0d1225" stroke="#2d3555"/>
+    <text x="113" y="382" class="body">View</text>
+    <rect x="184" y="360" width="108" height="34" rx="8" fill="#0d1225" stroke="#2d3555"/>
+    <text x="206" y="382" class="body">Run Agent</text>
+    <rect x="304" y="360" width="94" height="34" rx="8" fill="#2b1120" stroke="#ef4444"/>
+    <text x="336" y="382" class="body" fill="#fee2e2">Delete</text>
+
+    <rect x="58" y="432" width="590" height="216" rx="16" fill="#1a1f35" stroke="#2d3555"/>
+    <text x="84" y="468" class="section">Wedding Website</text>
+    <text x="84" y="491" class="small">/mnt/media/wedding-site-en</text>
+    <text x="84" y="526" class="body">Localized site with automated design, audits, and deployment checks.</text>
+    <rect x="84" y="548" width="126" height="28" rx="14" fill="rgba(245,158,11,0.15)"/>
+    <text x="107" y="566" class="badge-text" fill="#f59e0b">Setting up</text>
+    <text x="228" y="566" class="small">discovering competitors</text>
+    <rect x="84" y="594" width="88" height="34" rx="8" fill="#0d1225" stroke="#2d3555"/>
+    <text x="113" y="616" class="body">View</text>
+    <rect x="184" y="594" width="88" height="34" rx="8" fill="#0d1225" stroke="#2d3555"/>
+    <text x="212" y="616" class="body">Logs</text>
+
+    <rect x="58" y="666" width="590" height="216" rx="16" fill="#1a1f35" stroke="#2d3555"/>
+    <text x="84" y="702" class="section">AI Music Match</text>
+    <text x="84" y="725" class="small">/mnt/media/ai-music-match</text>
+    <text x="84" y="760" class="body">Matcher UI with health checks, deployment hooks, and on-demand agents.</text>
+    <rect x="84" y="782" width="96" height="28" rx="14" fill="rgba(148,163,184,0.12)"/>
+    <text x="110" y="800" class="badge-text" fill="#94a3b8">Pending</text>
+    <text x="196" y="800" class="small">not configured yet</text>
+
+    <rect x="678" y="198" width="854" height="684" rx="18" fill="#1a1f35" stroke="#2d3555"/>
+    <text x="708" y="236" class="section">Security Advisor</text>
+    <rect x="868" y="214" width="92" height="28" rx="14" fill="rgba(34,197,94,0.15)"/>
+    <text x="893" y="232" class="badge-text" fill="#22c55e">Active</text>
+    <text x="708" y="260" class="small">/mnt/media/security-advisor</text>
+
+    <text x="708" y="306" class="label">CONFIGURATION</text>
+    <line x1="708" y1="318" x2="1498" y2="318" stroke="#2d3555"/>
+    <text x="708" y="350" class="small">GitHub</text>
+    <text x="840" y="350" class="body">gil906/security-advisor</text>
+    <text x="708" y="380" class="small">Compose File</text>
+    <text x="840" y="380" class="body">/mnt/media/docker-compose/security-advisor.yml</text>
+    <text x="708" y="410" class="small">Health URL</text>
+    <text x="840" y="410" class="body">https://security.findthebreach.com/health</text>
+    <text x="708" y="440" class="small">Containers</text>
+    <text x="840" y="440" class="body">api, web, db</text>
+
+    <text x="708" y="488" class="label">AGENTS</text>
+    <line x1="708" y1="500" x2="1498" y2="500" stroke="#2d3555"/>
+
+    <rect x="708" y="522" width="186" height="92" rx="12" fill="#0d1225" stroke="#2d3555"/>
+    <circle cx="870" cy="546" r="6" fill="#f59e0b"/>
+    <text x="728" y="550" class="body">Feature Engineer</text>
+    <text x="728" y="574" class="small">Running</text>
+    <text x="728" y="594" class="small">Implementing portal polish</text>
+
+    <rect x="910" y="522" width="186" height="92" rx="12" fill="#0d1225" stroke="#2d3555"/>
+    <circle cx="1072" cy="546" r="6" fill="#22c55e"/>
+    <text x="930" y="550" class="body">Auditor</text>
+    <text x="930" y="574" class="small">Idle</text>
+    <text x="930" y="594" class="small">Last run 9m ago</text>
+
+    <rect x="1112" y="522" width="186" height="92" rx="12" fill="#0d1225" stroke="#2d3555"/>
+    <circle cx="1274" cy="546" r="6" fill="#22c55e"/>
+    <text x="1132" y="550" class="body">API Architect</text>
+    <text x="1132" y="574" class="small">Idle</text>
+    <text x="1132" y="594" class="small">Ready to run</text>
+
+    <rect x="1314" y="522" width="186" height="92" rx="12" fill="#0d1225" stroke="#2d3555"/>
+    <circle cx="1476" cy="546" r="6" fill="#22c55e"/>
+    <text x="1334" y="550" class="body">Portal Designer</text>
+    <text x="1334" y="574" class="small">Idle</text>
+    <text x="1334" y="594" class="small">Ready to run</text>
+
+    <text x="708" y="656" class="label">SETUP LOG</text>
+    <line x1="708" y1="668" x2="1498" y2="668" stroke="#2d3555"/>
+    <rect x="708" y="688" width="792" height="164" rx="12" fill="#050810" stroke="#2d3555"/>
+    <text x="730" y="718" class="mono">[09:42:11] scanning project structure...</text>
+    <text x="730" y="744" class="mono">[09:42:14] found docker-compose + health endpoint</text>
+    <text x="730" y="770" class="mono">[09:42:18] launching Feature Engineer for queued idea</text>
+    <text x="730" y="796" class="mono">[09:42:23] version check passed; hive is ready</text>
+
+    <rect x="1218" y="214" width="134" height="36" rx="9" fill="#0d1225" stroke="#2d3555"/>
+    <text x="1255" y="237" class="body">Edit Project</text>
+    <rect x="1368" y="214" width="132" height="36" rx="9" fill="#0d1225" stroke="#2d3555"/>
+    <text x="1406" y="237" class="body">Re-run Setup</text>
+  </g>
+</svg>
