@@ -54,27 +54,32 @@ with open('${project_file}') as f:
     p = json.load(f)
 
 # Core project settings
-print(f'export PROJECT_DIR={shlex.quote(p.get(\"path\", \"/opt/yourproject\"))}')
-print(f'export PROJECT_NAME={shlex.quote(p.get(\"name\", project_id))}')
-print(f'export GH_REPO={shlex.quote(p.get(\"github_repo\", \"owner/repo\"))}')
+print(f'export PROJECT_DIR={shlex.quote(p.get(\"path\") or \"/opt/yourproject\")}')
+print(f'export PROJECT_NAME={shlex.quote(p.get(\"name\") or project_id)}')
+print(f'export GH_REPO={shlex.quote(p.get(\"github_repo\") or \"owner/repo\")}')
+print(f'export HIVE_TOPOLOGY={shlex.quote(p.get(\"topology\") or \"adaptive-swarm\")}')
 
-# Docker settings
-docker = p.get('docker', {})
-if docker.get('compose_file'):
-    print(f'export COMPOSE_FILE={shlex.quote(docker[\"compose_file\"])}')
-containers = docker.get('containers', {})
-if containers.get('api'):
-    print(f'export CONTAINER_API={shlex.quote(containers[\"api\"])}')
-if containers.get('web'):
-    print(f'export CONTAINER_WEB={shlex.quote(containers[\"web\"])}')
-if containers.get('db'):
-    print(f'export CONTAINER_DB={shlex.quote(containers[\"db\"])}')
+# Docker settings (support both top-level and nested docker.* schema)
+docker = p.get('docker', {}) if isinstance(p.get('docker'), dict) else {}
+compose_file = p.get('compose_file') or docker.get('compose_file')
+if compose_file:
+    print(f'export COMPOSE_FILE={shlex.quote(compose_file)}')
+containers = p.get('containers') if isinstance(p.get('containers'), dict) else docker.get('containers', {})
+if isinstance(containers, dict):
+    if containers.get('api'):
+        print(f'export CONTAINER_API={shlex.quote(containers[\"api\"])}')
+    if containers.get('web'):
+        print(f'export CONTAINER_WEB={shlex.quote(containers[\"web\"])}')
+    if containers.get('db'):
+        print(f'export CONTAINER_DB={shlex.quote(containers[\"db\"])}')
 
-# Health URLs
-if docker.get('health_url'):
-    print(f'export HEALTH_URL={shlex.quote(docker[\"health_url\"])}')
-if docker.get('version_url'):
-    print(f'export VERSION_URL={shlex.quote(docker[\"version_url\"])}')
+# Health URLs (support both top-level and nested docker.* schema)
+health_url = p.get('health_url') or docker.get('health_url')
+if health_url:
+    print(f'export HEALTH_URL={shlex.quote(health_url)}')
+version_url = p.get('version_url') or docker.get('version_url')
+if version_url:
+    print(f'export VERSION_URL={shlex.quote(version_url)}')
 
 # Competitor sites for radical agent
 competitors = p.get('competitors', [])
@@ -125,7 +130,10 @@ if desc:
   # Per-project logs, changelogs, and state files
   export LOG_DIR="${project_dir}/logs"
   export CHANGELOG_DIR="${project_dir}/changelogs"
-  export STATUS_FILE="${project_dir}/ideas/agent_status.json"
+  export PIPELINE_STATUS_FILE="${project_dir}/.pipeline-status"
+  export STATUS_FILE="${PIPELINE_STATUS_FILE}"
+  export AGENT_STATUS_FILE="${project_dir}/ideas/agent_status.json"
+  export PAUSE_FILE="${project_dir}/.agents-paused"
   mkdir -p "$LOG_DIR" "$CHANGELOG_DIR"
 
   # Set project-specific log suffix

@@ -1,13 +1,16 @@
 {
   "name": "@gil906/copilot-hive",
-  "version": "1.7.0",
-  "description": "🐝 Autonomous AI Agent Swarm — 13 GitHub Copilot agents that research, develop, audit, and deploy improvements to production apps 24/7. Collection of agent prompts, scripts, and pipeline orchestration.",
+  "version": "2.0.0",
+  "description": "🐝 Autonomous AI Agent Swarm v2.0 — 14 GitHub Copilot agents with 5 smart orchestration topologies, Magic UI Command Center, and context-mode BM25/RRF knowledge & sandbox engine for 24/7 self-healing continuous development.",
   "main": "index.js",
   "bin": {
     "copilot-hive": "bin/cli.js"
   },
   "scripts": {
-    "test": "node bin/cli.js --help"
+    "start": "node dashboard.js",
+    "dashboard": "node dashboard.js",
+    "doctor": "node bin/cli.js doctor",
+    "test": "node bin/cli.js --help && node bin/cli.js doctor"
   },
   "keywords": [
     "github-copilot",
@@ -21,7 +24,10 @@
     "self-healing",
     "ai-development",
     "prompt-engineering",
-    "copilot-prompts"
+    "copilot-prompts",
+    "context-mode",
+    "magicui",
+    "orchestration-topologies"
   ],
   "author": "gil906",
   "license": "MIT",
@@ -42,11 +48,16 @@
     "prompts/",
     "projects/",
     "templates/",
+    "assets/",
     "index.js",
     "dashboard.js",
+    "config.sh",
+    "platform-detect.sh",
     "run-agent.sh",
+    "run-all-projects.sh",
     "setup-project.sh",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "CHANGELOG.md"
   ]
 }

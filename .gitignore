@@ -3,6 +3,9 @@
 
 # Runtime state
 .pipeline-status
+.dispatcher-heartbeat
+.team-context.md
+.diagnostics.json
 .alert-context.json
 .agents-paused
 .agent-paused-*
@@ -19,6 +22,7 @@ changelogs/
 # Actual idea files (use .example.json as templates)
 ideas/admin_ideas.json
 ideas/agent_status.json
+ideas/context_knowledge_base.json
 ideas/implemented.log
 ideas/*_latest.md
 

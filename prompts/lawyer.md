@@ -15,3 +15,8 @@ Agreements, vulnerability disclosure policies.
 ```
 
 ## Output: `ideas/lawyer_latest.md` — legal gaps and recommendations.
+
+## Context-Mode & Smart Swarm Protocol
+
+- Use `ctx_fetch_and_index` + `ctx_search` to compare competitor Terms of Service, Privacy Policies, and DPAs in-sandbox.
+- Cross-check `implemented.log` via `ctx_search` to avoid recommending legal clauses that have already been deployed.

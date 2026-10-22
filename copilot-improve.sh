@@ -1,8 +1,10 @@
 #!/bin/bash
 
-# Load central configuration
+# Load central configuration & shared agent helpers
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 source "${SCRIPT_DIR}/config.sh"
+source "${SCRIPT_DIR}/lib/agent-helpers.sh"
+init_agent_env "improve" "$@"
 START_TIME=$(date +%s)
 
 # ── Dry-run mode ─────────────────────────────────────────────────────
@@ -14,124 +16,17 @@ fi
 
 # ── Config ────────────────────────────────────────────────────────────────────
 PROJECT_DIR="${PROJECT_DIR:-/opt/yourproject}"
-LOG_FILE="${LOG_FILE:-/opt/copilot-hive/copilot-improve.log}"
 COMPOSE_FILE="${COMPOSE_FILE:-/opt/docker-compose/yourproject.yml}"
-NOTIFY="/opt/copilot-hive/notify-smartthings.sh"
-CHANGELOG_DIR="${CHANGELOG_DIR:-/opt/copilot-hive/changelogs}"
-IDEAS_DIR="${IDEAS_DIR:-/opt/copilot-hive/ideas}"
-COPILOT="/usr/local/bin/copilot"
+NOTIFY="${NOTIFY:-${SCRIPT_DIR}/notify-smartthings.sh}"
+CHANGELOG_DIR="${CHANGELOG_DIR:-${SCRIPT_DIR}/changelogs}"
+IDEAS_DIR="${IDEAS_DIR:-${SCRIPT_DIR}/ideas}"
+COPILOT="${COPILOT:-$(command -v copilot 2>/dev/null || echo /usr/local/bin/copilot)}"
 
-# ── Pause check ───────────────────────────────────────────────────────────────
-PAUSE_FILE="${PAUSE_FILE:-/opt/copilot-hive/.agents-paused}"
-AGENT_PAUSE_FILE="${AGENT_PAUSE_FILE:-/opt/copilot-hive/.agent-paused-improve}"
-if [ -f "$PAUSE_FILE" ] || [ -f "$AGENT_PAUSE_FILE" ]; then
-  echo "$(date) — SKIPPED: Agent paused by admin" >> "$LOG_FILE"
-  exit 0
-fi
-
-# ── Agent Status Helper ──────────────────────────────────────────────────────
-STATUS_FILE="${STATUS_FILE:-/opt/copilot-hive/ideas/agent_status.json}"
-update_agent_status() {
-  local agent_id="$1"
-  local status="$2"
-  local step="$3"
-  local exit_code="${4:-}"
-  python3 -c "
-import json, datetime, os
-f='${STATUS_FILE}'
-try:
-    with open(f) as fh: data = json.load(fh)
-except: data = {'agents': {}}
-a = data.setdefault('agents', {}).setdefault('${1}', {})
-a['status'] = '${2}'
-if '${2}' == 'running':
-    a['started_at'] = datetime.datetime.now(datetime.timezone.utc).isoformat()
-    a['finished_at'] = None
-elif '${2}' == 'idle':
-    a['finished_at'] = datetime.datetime.now(datetime.timezone.utc).isoformat()
-step = '''${3}'''
-if step:
-    a['current_step'] = step
-elif '${2}' == 'idle':
-    a['current_step'] = None
-ec = '${4}'
-if ec:
-    try: a['last_exit_code'] = int(ec)
-    except: pass
-import tempfile, os as _os
-tmp = f + '.tmp'
-with open(tmp, 'w') as fh: json.dump(data, fh, indent=2)
-_os.replace(tmp, f)
-" 2>/dev/null
-}
-
-update_agent_status "improve" "running" "Starting up"
+check_agent_paused "improve"
+update_agent_status "improve" "running" "Starting feature implementation cycle"
 
 # ── Urgent Admin Ideas Check ─────────────────────────────────────────────────
-URGENT_IDEA=$(python3 -c "
-import json
-try:
-    with open('${IDEAS_DIR}/admin_ideas.json') as f:
-        data = json.load(f)
-    urgent = [i for i in data.get('ideas',[]) if i.get('urgent') and i.get('status')=='pending']
-    if urgent:
-        idea = urgent[0]
-        print(idea['title'] + '|||' + idea['description'] + '|||' + idea['id'])
-except: pass
-" 2>/dev/null)
-
-if [ -n "$URGENT_IDEA" ]; then
-  URGENT_TITLE=$(echo "$URGENT_IDEA" | cut -d'|||' -f1)
-  URGENT_DESC=$(echo "$URGENT_IDEA" | cut -d'|||' -f2)
-  URGENT_ID=$(echo "$URGENT_IDEA" | cut -d'|||' -f3)
-
-  echo "$(date) — URGENT ADMIN IDEA detected: $URGENT_TITLE" >> "$LOG_FILE"
-  update_agent_status "improve" "running" "Implementing urgent admin request: $URGENT_TITLE"
-
-  OVERRIDE_PROMPT="You are the FEATURE ENGINEER for the project at ${PROJECT_DIR}. The ADMIN has submitted an URGENT request. Implement it NOW.
-
-The source code is at ${PROJECT_DIR}. The docker-compose is at ${COMPOSE_FILE}.
-
-URGENT ADMIN REQUEST:
-Title: ${URGENT_TITLE}
-Description: ${URGENT_DESC}
-
-RULES:
-- Implement this request completely and correctly
-- This is your ONLY task — do nothing else
-- Do not break existing functionality
-- When done, your changes will be committed and pushed by the script"
-
-  cd "$PROJECT_DIR"
-  "$COPILOT" --prompt "$OVERRIDE_PROMPT" --yolo --allow-all-paths >> "$LOG_FILE" 2>&1
-  URGENT_EXIT=$?
-
-  if [ $URGENT_EXIT -eq 0 ]; then
-    python3 -c "
-import json, datetime
-with open('${IDEAS_DIR}/admin_ideas.json') as f: data = json.load(f)
-for i in data['ideas']:
-    if i['id'] == '$URGENT_ID':
-        i['status'] = 'implemented'
-        i['urgent'] = False
-        i['implemented_at'] = datetime.datetime.now(datetime.timezone.utc).isoformat()
-        break
-with open('${IDEAS_DIR}/admin_ideas.json', 'w') as f: json.dump(data, f, indent=2)
-" 2>/dev/null
-    echo "✅ DONE | $(date '+%Y-%m-%d %H:%M') | admin | $URGENT_TITLE" >> "${IDEAS_DIR}/implemented.log"
-  fi
-
-  if git -C "$PROJECT_DIR" status --porcelain | grep -q .; then
-    git -C "$PROJECT_DIR" add -A
-    git -C "$PROJECT_DIR" commit -m "urgent: admin request — $URGENT_TITLE
-
-Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
-    git -C "$PROJECT_DIR" push origin main 2>&1 || true
-  fi
-fi
-
-# Exit after urgent request — let next cycle handle normal features
-if [ -n "$URGENT_IDEA" ]; then
+if handle_urgent_admin_idea "improve" "Feature Engineer"; then
   echo "$(date) — Exiting after urgent request. Normal features deferred to next cycle." >> "$LOG_FILE"
   update_agent_status "improve" "idle" "" "0"
   exit 0
@@ -383,22 +278,25 @@ ${IMPLEMENTED_LOG:-  (Nothing implemented yet from research agents)}
 CTXEOF
 )
 
-FULL_PROMPT="${PROMPT}${CONTEXT}"
-update_agent_status "improve" "running" "Running Copilot CLI"
-DRY_RUN_FLAGS=""
+SMART_CTX=$(get_smart_context "improve")
+FULL_PROMPT="${PROMPT}${CONTEXT}
+
+${SMART_CTX}"
+update_agent_status "improve" "running" "Running Copilot CLI feature implementation"
 if [ "$DRY_RUN" = true ]; then
-  DRY_RUN_FLAGS='--deny-tool "bash(git push*)" --deny-tool "bash(git commit*)"'
+  "$COPILOT" --prompt "$FULL_PROMPT" --yolo --allow-all-paths --deny-tool 'shell(git push)' --deny-tool 'shell(git commit)' >> "$LOG_FILE" 2>&1
+else
+  "$COPILOT" --prompt "$FULL_PROMPT" --yolo --allow-all-paths >> "$LOG_FILE" 2>&1
 fi
-eval "$COPILOT" --prompt "$FULL_PROMPT" --yolo --allow-all-paths $DRY_RUN_FLAGS >> "$LOG_FILE" 2>&1
 
 EXIT_CODE=$?
 echo "Finished: $(date) (exit code: $EXIT_CODE)" >> "$LOG_FILE"
 
 if [ $EXIT_CODE -ne 0 ]; then
   update_agent_status "improve" "running" "Failed — calling Emergency Fixer" "$EXIT_CODE"
-  "$NOTIFY" "YourProject IMPROVE failed (exit $EXIT_CODE) at $(date '+%H:%M')" >> "$LOG_FILE" 2>&1
+  "$NOTIFY" "IMPROVE failed (exit $EXIT_CODE) at $(date '+%H:%M')" >> "$LOG_FILE" 2>&1
   echo "Calling Emergency Fixer agent..." >> "$LOG_FILE"
-  /opt/copilot-hive/copilot-emergencyfixer.sh improve "$EXIT_CODE" >> "$LOG_FILE" 2>&1
+  "${SCRIPTS_DIR}/copilot-emergencyfixer.sh" improve "$EXIT_CODE" >> "$LOG_FILE" 2>&1
 fi
 
 # ── Changelog ─────────────────────────────────────────────────────────
@@ -489,7 +387,7 @@ else
 fi
 
 # ── Report to pipeline dispatcher ────────────────────────────────────
-PIPELINE_FILE="${PIPELINE_FILE:-/opt/copilot-hive/.pipeline-status}"
+PIPELINE_FILE="${PIPELINE_STATUS_FILE:-${SCRIPTS_DIR}/.pipeline-status}"
 if [ -f "$PIPELINE_FILE" ]; then
   source "$PIPELINE_FILE"
   if [ "$PUSHED" = "yes" ]; then
@@ -523,6 +421,9 @@ PEOF
     echo "Pipeline: idle (no changes pushed)" >> "$LOG_FILE"
   fi
 fi
+
+index_agent_output "improve" "$CHANGELOG_FILE"
+[ -f "${IDEAS_DIR}/implemented.log" ] && index_agent_output "improve" "${IDEAS_DIR}/implemented.log"
 
 # ── Track rejected ideas for future reference ─────────────────────────
 REJECTED_LOG="${IDEAS_DIR}/rejected_ideas.log"

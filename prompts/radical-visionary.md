@@ -54,3 +54,8 @@ ideas from any specialist agent combined. Think disruption, not polish.
 ```
 
 ## Read-Only Enforcement: Same `--deny-tool` flags.
+
+## Context-Mode & Smart Swarm Protocol
+
+- Use `ctx_fetch_and_index` and `ctx_search` to index competitor documentation, pricing pages, and changelogs into the knowledge base rather than using raw `curl`.
+- Include explicit **Impact (1-10)**, **Confidence (1-10)**, and **Ease (1-10)** scores on each of the 5 transformative ideas for the Adaptive Swarm ICE ranker.

@@ -1,12 +1,15 @@
 #!/bin/bash
 
-# Load central configuration
+# Load central configuration & shared agent helpers
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 source "${SCRIPT_DIR}/config.sh"
+source "${SCRIPT_DIR}/lib/agent-helpers.sh"
+init_agent_env "dispatcher" "$@"
 
 # ══════════════════════════════════════════════════════════════════════
-#  Pipeline Dispatcher — Event-driven agent chaining
-#  Runs every 1 min via cron. Chains: improve → deploy → audit → deploy → ...
+#  Pipeline Dispatcher — Event-driven & Smart Topology Agent Chaining
+#  Runs every 1 min via cron. Supports 5 topologies:
+#    cyclic-pipeline, star-hub, dag-mesh, adaptive-swarm, self-healing-ring
 #
 #  FAILURE RESPONSIBILITY:
 #    Deploy fails → re-run the SAME agent that pushed (they fix their own mess)
@@ -14,21 +17,23 @@ source "${SCRIPT_DIR}/config.sh"
 #    Emergency Fixer only acts when no other agent is already fixing the issue
 # ══════════════════════════════════════════════════════════════════════
 
-SCRIPTS_DIR="/opt/copilot-hive"
-STATUS_FILE="$SCRIPTS_DIR/.pipeline-status"
-PAUSE_FILE="$SCRIPTS_DIR/.agents-paused"
-LOG_FILE="$SCRIPTS_DIR/copilot-dispatcher.log"
-NOTIFY="$SCRIPTS_DIR/notify-smartthings.sh"
+SCRIPTS_DIR="${SCRIPTS_DIR:-$SCRIPT_DIR}"
+STATUS_FILE="${PIPELINE_STATUS_FILE:-$SCRIPTS_DIR/.pipeline-status}"
+PAUSE_FILE="${PAUSE_FILE:-$SCRIPTS_DIR/.agents-paused}"
+LOG_FILE="${LOG_DIR:-$SCRIPTS_DIR}/copilot-dispatcher${PROJECT_LOG_SUFFIX:-}.log"
+NOTIFY="${NOTIFY:-$SCRIPTS_DIR/notify-smartthings.sh}"
 PROJECT_DIR="${PROJECT_DIR:-/opt/yourproject}"
 GH_REPO="${GH_REPO:-owner/yourproject}"
-DEPLOY_TIMEOUT=1800
-STALE_AGENT_TIMEOUT=3600
-CONTAINER_API="yourproject-api"
-CONTAINER_WEB="yourproject-web"
-HEALTH_URL="http://localhost:8080/"
-VERSION_URL="http://localhost:8080/api/version"
-MAX_FIX_RETRIES=2  # original agent gets 2 tries, then emergency fixer
-LAST_GOOD_COMMIT=""  # Updated on successful deploy verification
+DEPLOY_TIMEOUT="${DEPLOY_TIMEOUT:-1800}"
+STALE_AGENT_TIMEOUT="${STALE_AGENT_TIMEOUT:-3600}"
+CONTAINER_API="${CONTAINER_API:-yourproject-api}"
+CONTAINER_WEB="${CONTAINER_WEB:-yourproject-web}"
+HEALTH_URL="${HEALTH_URL:-http://localhost:8080/}"
+VERSION_URL="${VERSION_URL:-http://localhost:8080/api/version}"
+MAX_FIX_RETRIES="${MAX_FIX_RETRIES:-2}"  # original agent gets 2 tries, then emergency fixer
+LAST_GOOD_COMMIT="${LAST_GOOD_COMMIT:-}"  # Updated on successful deploy verification
+AGENT_START_TIME="${AGENT_START_TIME:-0}"
+USE_GITHUB_ACTIONS="${USE_GITHUB_ACTIONS:-false}" # Local Docker verification by default (saves GitHub Actions minutes)
 
 log() { echo "$(date '+%Y-%m-%d %H:%M:%S') — $*" >> "$LOG_FILE"; }
 
@@ -38,6 +43,7 @@ if [ ! -f "$STATUS_FILE" ]; then
 PIPELINE_STATE=idle
 CURRENT_AGENT=
 CURRENT_PID=
+AGENT_START_TIME=0
 LAST_AGENT=audit
 LAST_FINISHED=0
 LAST_COMMIT=
@@ -47,13 +53,14 @@ DEPLOY_VERIFIED=yes
 NEXT_AGENT=improve
 FIX_RESPONSIBILITY=
 FIX_RETRIES=0
+LAST_GOOD_COMMIT=
 EOF
 fi
 
-[ -f "$PAUSE_FILE" ] && exit 0
+check_agent_paused "dispatcher"
 
 # ── Log rotation (keep logs under 10MB) ──────────────────────────────
-for lf in "$SCRIPTS_DIR"/copilot-*.log "$SCRIPTS_DIR"/health-webhook.log; do
+for lf in "$LOG_DIR"/copilot-*.log "$SCRIPTS_DIR"/health-webhook.log; do
   if [ -f "$lf" ] && [ $(get_file_size "$lf") -gt 10485760 ]; then
     mv "$lf" "${lf}.old"
     echo "$(date '+%Y-%m-%d %H:%M:%S') — Log rotated (was >10MB)" > "$lf"
@@ -68,15 +75,11 @@ portable_lock "${STATUS_FILE}.lock"
 source "$STATUS_FILE"
 portable_unlock "${STATUS_FILE}.lock"
 
-# Health monitoring is handled by Uptime Kuma (port 3001)
-# → checks every 60s, alerts after 5 consecutive failures (5 min)
-# → sends webhook to health-webhook container (port 9095)
-# → webhook triggers emergency fixer + SmartThings notification
-
-# ── GitHub token ─────────────────────────────────────────────────────
+# ── GitHub token (only used if USE_GITHUB_ACTIONS=true) ──────────────
 GH_TOKEN=""
-[ -f ~/.git-credentials ] && \
+if [ "$USE_GITHUB_ACTIONS" = "true" ] && [ -f ~/.git-credentials ]; then
   GH_TOKEN=$(grep 'github.com' ~/.git-credentials | head -1 | sed 's|https://[^:]*:\([^@]*\)@.*|\1|')
+fi
 
 # ── Save status ──────────────────────────────────────────────────────
 save_status() {
@@ -85,6 +88,7 @@ save_status() {
 PIPELINE_STATE=$PIPELINE_STATE
 CURRENT_AGENT=$CURRENT_AGENT
 CURRENT_PID=$CURRENT_PID
+AGENT_START_TIME=${AGENT_START_TIME:-0}
 LAST_AGENT=$LAST_AGENT
 LAST_FINISHED=$LAST_FINISHED
 LAST_COMMIT=$LAST_COMMIT
@@ -104,9 +108,17 @@ EOF
 # ── Generate team context for agents ─────────────────────────────────
 generate_team_context() {
   local ctx_file="$SCRIPTS_DIR/.team-context.md"
+  local active_ideas=""
+  for f in "$IDEAS_DIR"/*_latest.md "$IDEAS_DIR"/*_checklist.json; do
+    if [ -f "$f" ]; then
+      active_ideas="${active_ideas}- $(basename "$f"): $(wc -l < "$f" 2>/dev/null || echo 0) lines ($(get_file_mtime "$f"))\n"
+    fi
+  done
+
   cat > "$ctx_file" <<TEAMCTX
 # Team Context (auto-generated by dispatcher)
 Updated: $(date '+%Y-%m-%d %H:%M:%S')
+Topology: ${HIVE_TOPOLOGY:-adaptive-swarm}
 
 ## Pipeline State
 - **State**: $PIPELINE_STATE
@@ -120,7 +132,7 @@ Updated: $(date '+%Y-%m-%d %H:%M:%S')
 $(git -C "$PROJECT_DIR" log --oneline -5 2>/dev/null || echo "  (no git history)")
 
 ## Agent Status
-$(cat "$SCRIPTS_DIR/ideas/agent_status.json" 2>/dev/null | python3 -c "
+$(cat "$AGENT_STATUS_FILE" 2>/dev/null | python3 -c "
 import sys, json
 try:
     data = json.load(sys.stdin)
@@ -128,21 +140,24 @@ try:
         st = info.get('status', '?')
         step = info.get('current_step', '')
         print(f'- **{name}**: {st} {(\"— \" + step) if step else \"\"}')
-except: print('  (status unavailable)')
+except Exception:
+    print('  (status unavailable)')
 " 2>/dev/null)
 
 ## Active Ideas Files
-$(for f in "$IDEAS_DIR"/*_latest.md "$IDEAS_DIR"/*_checklist.json; do
-  [ -f "\$f" ] && echo "- \$(basename "\$f"): \$(wc -l < "\$f") lines (\$(get_file_mtime "\$f"))"
-done)
+$(printf "%b" "${active_ideas:-  (no ideas files yet)\n}")
 TEAMCTX
-  log "Generated team context"
+  index_agent_output "dispatcher" "$ctx_file"
+  log "Generated team context (topology=${HIVE_TOPOLOGY:-adaptive-swarm})"
 }
 
-# ── Check GitHub Actions deploy status ───────────────────────────────
+# ── Check deploy status (Local Docker first; GitHub Actions only if enabled) ──
 check_deploy() {
   local commit="$1"
-  [ -z "$commit" ] || [ -z "$GH_TOKEN" ] && { echo "skip"; return; }
+  if [ "$USE_GITHUB_ACTIONS" != "true" ] || [ -z "$commit" ] || [ -z "$GH_TOKEN" ]; then
+    echo "skip"
+    return
+  fi
   curl -sf -H "Authorization: token $GH_TOKEN" \
     "https://api.github.com/repos/$GH_REPO/actions/runs?per_page=5&branch=main" 2>/dev/null | \
   python3 -c "
@@ -194,34 +209,75 @@ verify_container() {
   echo "healthy"
 }
 
+# ── Select next agent using Smart Topology Engine (with rotation fallback) ──
+resolve_smart_next_agent() {
+  local fallback="${1:-improve}"
+  if [ -f "${SCRIPTS_DIR}/lib/hive-engine.js" ]; then
+    local smart_pick
+    smart_pick=$(node -e "
+      try {
+        const he = require('${SCRIPTS_DIR}/lib/hive-engine');
+        const res = he.evaluateSwarmIntelligence('${PROJECT_ID:-}');
+        if (res && res.recommendedAgent && res.recommendedAgent !== 'dispatcher') {
+          console.log(res.recommendedAgent);
+        }
+      } catch (e) {}
+    " 2>/dev/null)
+    if [ -n "$smart_pick" ] && [ -x "${SCRIPTS_DIR}/copilot-${smart_pick}.sh" ]; then
+      echo "$smart_pick"
+      return
+    fi
+  fi
+  echo "$fallback"
+}
+
 # ── Launch a specific agent ──────────────────────────────────────────
 launch_agent() {
   local agent="$1"
   local reason="${2:-normal}"  # normal, fix_own, emergency
   local script rotation
 
+  if [ "$reason" = "normal" ] && [ "${HIVE_TOPOLOGY:-adaptive-swarm}" != "cyclic-pipeline" ]; then
+    agent=$(resolve_smart_next_agent "$agent")
+  fi
+
   case "$agent" in
-    improve) script="$SCRIPTS_DIR/copilot-improve.sh"; rotation="audit" ;;
-    audit)   script="$SCRIPTS_DIR/copilot-audit.sh";   rotation="improve" ;;
-    emergency) script="$SCRIPTS_DIR/copilot-emergencyfixer.sh"; rotation="$NEXT_AGENT" ;;
-    *)       agent="improve"; script="$SCRIPTS_DIR/copilot-improve.sh"; rotation="audit" ;;
+    improve)        script="$SCRIPTS_DIR/copilot-improve.sh";        rotation="audit" ;;
+    audit)          script="$SCRIPTS_DIR/copilot-audit.sh";          rotation="improve" ;;
+    emergency|emergencyfixer) agent="emergencyfixer"; script="$SCRIPTS_DIR/copilot-emergencyfixer.sh"; rotation="${NEXT_AGENT:-improve}" ;;
+    deployer)       script="$SCRIPTS_DIR/copilot-deployer.sh";       rotation="regressiontest" ;;
+    regressiontest) script="$SCRIPTS_DIR/copilot-regressiontest.sh"; rotation="audit" ;;
+    gitguardian)    script="$SCRIPTS_DIR/copilot-gitguardian.sh";    rotation="improve" ;;
+    radical)        script="$SCRIPTS_DIR/copilot-radical.sh";        rotation="improve" ;;
+    architect-api)  script="$SCRIPTS_DIR/copilot-architect-api.sh";  rotation="improve" ;;
+    designer-web)   script="$SCRIPTS_DIR/copilot-designer-web.sh";   rotation="improve" ;;
+    designer-portal) script="$SCRIPTS_DIR/copilot-designer-portal.sh"; rotation="improve" ;;
+    lawyer)         script="$SCRIPTS_DIR/copilot-lawyer.sh";         rotation="improve" ;;
+    compliance)     script="$SCRIPTS_DIR/copilot-compliance.sh";     rotation="improve" ;;
+    reporter)       script="$SCRIPTS_DIR/copilot-reporter.sh";       rotation="improve" ;;
+    *)              agent="improve"; script="$SCRIPTS_DIR/copilot-improve.sh"; rotation="audit" ;;
   esac
 
   [ ! -x "$script" ] && { log "ERROR: $script not executable"; exit 1; }
 
   generate_team_context
+  update_agent_status "dispatcher" "running" "Dispatching ${agent} (${reason}, topology=${HIVE_TOPOLOGY:-adaptive-swarm})"
 
-  if [ "$agent" = "emergency" ]; then
-    nohup "$script" "deploy" "1" >> /dev/null 2>&1 &
+  local proj_args=()
+  [ -n "${PROJECT_ID:-}" ] && proj_args=("--project" "$PROJECT_ID")
+
+  if [ "$agent" = "emergencyfixer" ]; then
+    nohup "$script" "deploy" "1" "${proj_args[@]}" >> /dev/null 2>&1 &
   else
-    nohup "$script" >> /dev/null 2>&1 &
+    nohup "$script" "${proj_args[@]}" >> /dev/null 2>&1 &
   fi
   local pid=$!
 
-  PIPELINE_STATE="running"; CURRENT_AGENT="$agent"; CURRENT_PID="$pid"
+  PIPELINE_STATE="running"; CURRENT_AGENT="$agent"; CURRENT_PID="$pid"; AGENT_START_TIME=$(date +%s)
   [ "$reason" = "normal" ] && NEXT_AGENT="$rotation"
   save_status
-  log "▶ Launched $agent (PID $pid, reason: $reason). Next: $NEXT_AGENT"
+  update_agent_status "dispatcher" "idle" "Active: ${agent} (PID ${pid})" "0"
+  log "▶ Launched $agent (PID $pid, reason: $reason, topology: ${HIVE_TOPOLOGY:-adaptive-swarm}). Next: $NEXT_AGENT"
 }
 
 # ── Handle deploy failure with responsibility tracking ───────────────
@@ -282,7 +338,8 @@ case "$PIPELINE_STATE" in
   running)
     if [ -n "$CURRENT_PID" ] && kill -0 "$CURRENT_PID" 2>/dev/null; then
       NOW=$(date +%s)
-      if [ "$((NOW - ${LAST_FINISHED:-0}))" -gt "$STALE_AGENT_TIMEOUT" ]; then
+      START_REF="${AGENT_START_TIME:-${LAST_FINISHED:-0}}"
+      if [ "${START_REF:-0}" -gt 0 ] && [ "$((NOW - START_REF))" -gt "$STALE_AGENT_TIMEOUT" ]; then
         log "⚠ $CURRENT_AGENT (PID $CURRENT_PID) running >1h — killing hung agent"
         kill -TERM "$CURRENT_PID" 2>/dev/null
         sleep 5
@@ -291,7 +348,7 @@ case "$PIPELINE_STATE" in
         LAST_AGENT="$CURRENT_AGENT"
         [ "$CURRENT_AGENT" = "improve" ] && NEXT_AGENT="audit" || NEXT_AGENT="improve"
         LAST_FINISHED=$(date +%s)
-        PIPELINE_STATE="idle"; CURRENT_AGENT=""; CURRENT_PID=""
+        PIPELINE_STATE="idle"; CURRENT_AGENT=""; CURRENT_PID=""; AGENT_START_TIME=0
         FIX_RESPONSIBILITY=""; FIX_RETRIES=0
         save_status
       fi

@@ -23,3 +23,8 @@ Focus areas:
 ## Output: `ideas/api_architect_latest.md` — same format, 10 ideas.
 
 ## Read-Only Enforcement: Same `--deny-tool` flags.
+
+## Context-Mode & Smart Swarm Protocol
+
+- Use `ctx_execute` to programmatically inspect route tables, database schemas, and middleware chains across the codebase without reading raw files into memory.
+- Score every proposed architectural improvement with **Impact (1-10)**, **Confidence (1-10)**, and **Ease (1-10)** so the Adaptive Swarm orchestrator can rank ideas via ICE scoring.

@@ -60,10 +60,10 @@
 
     <text x="388" y="370" class="label">LOCAL PATH *</text>
     <rect x="388" y="382" width="554" height="42" rx="8" fill="#0d1225" stroke="#2d3555"/>
-    <text x="406" y="408" class="body">/mnt/media/my-saas-app</text>
+    <text x="406" y="408" class="body">/opt/projects/my-saas-app</text>
 
     <rect x="388" y="438" width="554" height="112" rx="10" fill="#050810" stroke="#2d3555"/>
-    <text x="406" y="464" class="small">Directory to scan: /mnt/media</text>
+    <text x="406" y="464" class="small">Directory to scan: /opt/projects</text>
     <rect x="780" y="450" width="126" height="30" rx="7" fill="#0d1225" stroke="#00d4ff"/>
     <text x="814" y="470" class="body">Discover</text>
     <text x="406" y="502" class="body">Project Alpha</text>

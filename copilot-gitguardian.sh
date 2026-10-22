@@ -1,20 +1,28 @@
 #!/bin/bash
 
-# Load central configuration
+# Load central configuration & shared agent helpers
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 source "${SCRIPT_DIR}/config.sh"
+source "${SCRIPT_DIR}/lib/agent-helpers.sh"
+init_agent_env "gitguardian" "$@"
+check_agent_paused "gitguardian"
+acquire_agent_lock "gitguardian${PROJECT_ID:+-$PROJECT_ID}" || { echo "$(date) — SKIPPED: Another gitguardian instance running" >> "$LOG_FILE"; exit 0; }
 
 # ── Config ────────────────────────────────────────────────────────────────────
 PROJECT_DIR="${PROJECT_DIR:-/opt/yourproject}"
-LOG_FILE="${LOG_FILE:-/opt/copilot-hive/copilot-gitguardian.log}"
-NOTIFY="/opt/copilot-hive/notify-smartthings.sh"
-CHANGELOG_DIR="${CHANGELOG_DIR:-/opt/copilot-hive/changelogs}"
+NOTIFY="${NOTIFY:-${SCRIPT_DIR}/notify-smartthings.sh}"
+CHANGELOG_DIR="${CHANGELOG_DIR:-${SCRIPT_DIR}/changelogs}"
 
 # ── Run ───────────────────────────────────────────────────────────────────────
 echo "======================================" >> "$LOG_FILE"
 echo "Git Guardian Started: $(date)" >> "$LOG_FILE"
+update_agent_status "gitguardian" "running" "Scanning repository for secrets & hygiene"
 
-cd "$PROJECT_DIR" || { echo "ERROR: project dir not found: $PROJECT_DIR" >> "$LOG_FILE"; exit 1; }
+cd "$PROJECT_DIR" || {
+  echo "ERROR: project dir not found: $PROJECT_DIR" >> "$LOG_FILE"
+  update_agent_status "gitguardian" "idle" "Project directory not found" "1"
+  exit 1
+}
 
 ISSUES=0
 REPORT=""
@@ -152,6 +160,8 @@ CHANGELOG_FILE="${CHANGELOG_DIR}/gitguardian_${TIMESTAMP}.txt"
   fi
 } > "$CHANGELOG_FILE"
 echo "Changelog saved: $CHANGELOG_FILE" >> "$LOG_FILE"
+index_agent_output "gitguardian" "$CHANGELOG_FILE"
+update_agent_status "gitguardian" "idle" "" "$ISSUES"
 
 echo "Git Guardian Finished: $(date)" >> "$LOG_FILE"
 exit $ISSUES

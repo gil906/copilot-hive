@@ -1,23 +1,30 @@
 #!/bin/bash
 
-# Load central configuration
+# Load central configuration & shared agent helpers
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 source "${SCRIPT_DIR}/config.sh"
+source "${SCRIPT_DIR}/lib/agent-helpers.sh"
+init_agent_env "emergencyfixer" "$@"
 
 # ── Config ────────────────────────────────────────────────────────────────────
 PROJECT_DIR="${PROJECT_DIR:-/opt/yourproject}"
-LOG_FILE="${LOG_FILE:-/opt/copilot-hive/copilot-emergencyfixer.log}"
 COMPOSE_FILE="${COMPOSE_FILE:-/opt/docker-compose/yourproject.yml}"
-NOTIFY="/opt/copilot-hive/notify-smartthings.sh"
-CHANGELOG_DIR="${CHANGELOG_DIR:-/opt/copilot-hive/changelogs}"
-COPILOT="/usr/local/bin/copilot"
+CONTAINER_API="${CONTAINER_API:-yourproject-api}"
+CONTAINER_WEB="${CONTAINER_WEB:-yourproject-web}"
+CONTAINER_DB="${CONTAINER_DB:-yourproject-db}"
+NOTIFY="${NOTIFY:-${SCRIPT_DIR}/notify-smartthings.sh}"
+CHANGELOG_DIR="${CHANGELOG_DIR:-${SCRIPT_DIR}/changelogs}"
+COPILOT="${COPILOT:-$(command -v copilot 2>/dev/null || echo /usr/local/bin/copilot)}"
 
 # Called with: copilot-emergencyfixer.sh <which_agent> <exit_code>
 FAILED_AGENT="${1:-unknown}"
 FAILED_EXIT_CODE="${2:-1}"
-FAILED_LOG="${LOG_DIR:-/opt/copilot-hive}/copilot-${FAILED_AGENT}.log"
-ALERT_CONTEXT_FILE="${ALERT_CONTEXT_FILE:-/opt/copilot-hive/.alert-context.json}"
-PIPELINE_STATUS="${PIPELINE_STATUS:-/opt/copilot-hive/.pipeline-status}"
+FAILED_LOG="${LOG_DIR}/copilot-${FAILED_AGENT}${PROJECT_LOG_SUFFIX:-}.log"
+ALERT_CONTEXT_FILE="${ALERT_CONTEXT_FILE:-${SCRIPTS_DIR}/.alert-context.json}"
+PIPELINE_STATUS="${PIPELINE_STATUS_FILE:-${SCRIPTS_DIR}/.pipeline-status}"
+
+check_agent_paused "emergencyfixer"
+update_agent_status "emergencyfixer" "running" "Diagnosing ${FAILED_AGENT} failure (exit ${FAILED_EXIT_CODE})"
 
 # ── Read alert context (written by health-webhook or dispatcher) ─────
 ALERT_CONTEXT=""
@@ -35,25 +42,25 @@ fi
 # ── Gather container diagnostics ─────────────────────────────────────
 CONTAINER_DIAG=$(cat <<DIAGEOF
 CONTAINER STATUS:
-$(docker ps -a --filter name=yourproject --format "{{.Names}}: {{.Status}} (restarts={{.RunningFor}})" 2>/dev/null)
+$(docker ps -a --filter name="${CONTAINER_API%-*}" --format "{{.Names}}: {{.Status}} (restarts={{.RunningFor}})" 2>/dev/null)
 
 API CONTAINER LOGS (last 30 lines):
-$(docker logs yourproject-api --tail 30 2>&1)
+$(docker logs "$CONTAINER_API" --tail 30 2>&1)
 
 WEB CONTAINER LOGS (last 15 lines):
-$(docker logs yourproject-web --tail 15 2>&1)
+$(docker logs "$CONTAINER_WEB" --tail 15 2>&1)
 
 DB CONTAINER LOGS (last 10 lines):
-$(docker logs yourproject-db --tail 10 2>&1)
+$(docker logs "$CONTAINER_DB" --tail 10 2>&1)
 
 DOCKER HEALTH:
-API: $(docker inspect -f '{{.State.Health.Status}}' yourproject-api 2>/dev/null || echo "unknown")
-WEB: $(docker inspect -f '{{.State.Health.Status}}' yourproject-web 2>/dev/null || echo "unknown")
-DB:  $(docker inspect -f '{{.State.Health.Status}}' yourproject-db 2>/dev/null || echo "unknown")
+API: $(docker inspect -f '{{.State.Health.Status}}' "$CONTAINER_API" 2>/dev/null || echo "unknown")
+WEB: $(docker inspect -f '{{.State.Health.Status}}' "$CONTAINER_WEB" 2>/dev/null || echo "unknown")
+DB:  $(docker inspect -f '{{.State.Health.Status}}' "$CONTAINER_DB" 2>/dev/null || echo "unknown")
 
 HTTP CHECK:
-$(curl -sf -o /dev/null -w "Website: %{http_code} (%{time_total}s)" --max-time 5 http://localhost:8080/ 2>/dev/null || echo "Website: unreachable")
-$(curl -sf -o /dev/null -w "API: %{http_code} (%{time_total}s)" --max-time 5 http://localhost:8080/api/version 2>/dev/null || echo "API: unreachable")
+$(curl -sf -o /dev/null -w "Website: %{http_code} (%{time_total}s)" --max-time 5 "${HEALTH_URL:-http://localhost:8080/}" 2>/dev/null || echo "Website: unreachable")
+$(curl -sf -o /dev/null -w "API: %{http_code} (%{time_total}s)" --max-time 5 "${VERSION_URL:-http://localhost:8080/api/version}" 2>/dev/null || echo "API: unreachable")
 DIAGEOF
 )
 
@@ -63,7 +70,7 @@ import json, subprocess, datetime
 diag = {
     'timestamp': datetime.datetime.now().isoformat(),
     'failed_agent': '${FAILED_AGENT}',
-    'exit_code': ${FAILED_EXIT_CODE},
+    'exit_code': int('${FAILED_EXIT_CODE}') if '${FAILED_EXIT_CODE}'.isdigit() else 1,
     'containers': {},
     'http_checks': {}
 }
@@ -81,95 +88,8 @@ for name, url in [('website', '${HEALTH_URL:-http://localhost:8080/}'), ('api', 
 with open('${SCRIPTS_DIR}/.diagnostics.json', 'w') as f: json.dump(diag, f, indent=2)
 " 2>/dev/null
 
-# ── Pause check ───────────────────────────────────────────────────────────────
-PAUSE_FILE="${PAUSE_FILE:-/opt/copilot-hive/.agents-paused}"
-AGENT_PAUSE_FILE="${AGENT_PAUSE_FILE:-/opt/copilot-hive/.agent-paused-emergencyfixer}"
-if [ -f "$PAUSE_FILE" ] || [ -f "$AGENT_PAUSE_FILE" ]; then
-  echo "$(date) — SKIPPED: Agent paused by admin" >> "$LOG_FILE"
-  exit 0
-fi
-
-# ── Agent Status Helper ──────────────────────────────────────────────────────
-STATUS_FILE="${STATUS_FILE:-/opt/copilot-hive/ideas/agent_status.json}"
-update_agent_status() {
-  local st="$1" step="$2" ec="${3:-}"
-  python3 -c "
-import json, datetime
-f='${STATUS_FILE}'
-try:
-    with open(f) as fh: data = json.load(fh)
-except: data = {'agents': {}}
-a = data.setdefault('agents', {}).setdefault('emergencyfixer', {})
-a['status'] = '$st'
-if '$st' == 'running':
-    a['started_at'] = datetime.datetime.now(datetime.timezone.utc).isoformat()
-    a['finished_at'] = None
-if '$step':
-    a['current_step'] = '$step'
-elif '$st' == 'idle':
-    a['current_step'] = None
-    a['finished_at'] = datetime.datetime.now(datetime.timezone.utc).isoformat()
-if '$ec':
-    try: a['last_exit_code'] = int('$ec')
-    except: pass
-import tempfile, os as _os
-tmp = f + '.tmp'
-with open(tmp, 'w') as fh: json.dump(data, fh, indent=2)
-_os.replace(tmp, f)
-" 2>/dev/null
-}
-
-update_agent_status "running" "Starting up"
-
 # ── Urgent Admin Ideas Check ─────────────────────────────────────────────────
-_IDEAS_DIR="${IDEAS_DIR:-/opt/copilot-hive/ideas}"
-URGENT_IDEA=$(python3 -c "
-import json
-try:
-    with open('${_IDEAS_DIR}/admin_ideas.json') as f:
-        data = json.load(f)
-    urgent = [i for i in data.get('ideas',[]) if i.get('urgent') and i.get('status')=='pending']
-    if urgent:
-        idea = urgent[0]
-        print(idea['title'] + '|||' + idea['description'] + '|||' + idea['id'])
-except: pass
-" 2>/dev/null)
-
-if [ -n "$URGENT_IDEA" ]; then
-  URGENT_TITLE=$(echo "$URGENT_IDEA" | cut -d'|||' -f1)
-  URGENT_DESC=$(echo "$URGENT_IDEA" | cut -d'|||' -f2)
-  URGENT_ID=$(echo "$URGENT_IDEA" | cut -d'|||' -f3)
-  echo "$(date) — URGENT ADMIN IDEA: $URGENT_TITLE" >> "$LOG_FILE"
-  update_agent_status "running" "Urgent admin request: $URGENT_TITLE"
-  OVERRIDE_PROMPT="You are temporarily a DEVELOPER for Your Project. Your normal role is Emergency Fixer but the ADMIN has an urgent request.
-The source code is at ${PROJECT_DIR}. Docker-compose at /opt/docker-compose/yourproject.yml.
-URGENT: ${URGENT_TITLE}
-Details: ${URGENT_DESC}
-RULES: Implement completely. Do not break existing functionality."
-  cd "$PROJECT_DIR"
-  "$COPILOT" --prompt "$OVERRIDE_PROMPT" --yolo --allow-all-paths >> "$LOG_FILE" 2>&1
-  URGENT_EXIT=$?
-  if [ $URGENT_EXIT -eq 0 ]; then
-    python3 -c "
-import json, datetime
-with open('${_IDEAS_DIR}/admin_ideas.json') as f: data = json.load(f)
-for i in data['ideas']:
-    if i['id'] == '$URGENT_ID':
-        i['status'] = 'implemented'; i['urgent'] = False
-        i['implemented_at'] = datetime.datetime.now(datetime.timezone.utc).isoformat()
-        break
-with open('${_IDEAS_DIR}/admin_ideas.json', 'w') as f: json.dump(data, f, indent=2)
-" 2>/dev/null
-    echo "✅ DONE | $(date '%Y-%m-%d %H:%M') | admin | $URGENT_TITLE" >> "${_IDEAS_DIR}/implemented.log"
-  fi
-  if git -C "$PROJECT_DIR" status --porcelain | grep -q .; then
-    git -C "$PROJECT_DIR" add -A
-    git -C "$PROJECT_DIR" commit -m "urgent: admin request — $URGENT_TITLE
-
-Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
-    git -C "$PROJECT_DIR" push origin main 2>&1 || true
-  fi
-fi
+handle_urgent_admin_idea "emergencyfixer" "Emergency Fixer" || true
 
 # ── Load prompt from file if available ────────────────────────────────
 PROMPT_FILE="${SCRIPTS_DIR}/prompts/emergency-fixer.md"
@@ -316,7 +236,8 @@ else
   echo "No changes to push." >> "$LOG_FILE"
 fi
 
-update_agent_status "idle" "" "$EXIT_CODE"
+index_agent_output "emergencyfixer" "$CHANGELOG_FILE"
+update_agent_status "emergencyfixer" "idle" "" "$EXIT_CODE"
 
 # Clean up alert context after handling
 rm -f "$ALERT_CONTEXT_FILE" 2>/dev/null

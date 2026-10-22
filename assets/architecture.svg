@@ -1,264 +1,188 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 720">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 820">
   <defs>
     <linearGradient id="bgArch" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#0d1117"/>
-      <stop offset="100%" style="stop-color:#161b22"/>
+      <stop offset="0%" style="stop-color:#070a12"/>
+      <stop offset="50%" style="stop-color:#0d1117"/>
+      <stop offset="100%" style="stop-color:#131826"/>
     </linearGradient>
-    <filter id="shadow"><feDropShadow dx="0" dy="2" stdDeviation="4" flood-opacity="0.4"/></filter>
+    <linearGradient id="beamGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00d4ff"/>
+      <stop offset="50%" stop-color="#a371f7"/>
+      <stop offset="100%" stop-color="#3fb950"/>
+    </linearGradient>
+    <filter id="shadow"><feDropShadow dx="0" dy="3" stdDeviation="5" flood-opacity="0.45"/></filter>
     <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path d="M 0 0 L 10 5 L 0 10 z" fill="#58a6ff"/>
     </marker>
     <marker id="arrowG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path d="M 0 0 L 10 5 L 0 10 z" fill="#3fb950"/>
     </marker>
+    <marker id="arrowP" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#a371f7"/>
+    </marker>
   </defs>
-  
-  <rect width="960" height="720" rx="12" fill="url(#bgArch)"/>
-  <rect x="1" y="1" width="958" height="718" rx="12" fill="none" stroke="#30363d" stroke-width="1"/>
 
-  <!-- Title -->
-  <text x="480" y="38" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="20" font-weight="700" fill="#f0b429">🐝 COPILOT HIVE — ARCHITECTURE</text>
+  <rect width="980" height="820" rx="14" fill="url(#bgArch)"/>
+  <rect x="1" y="1" width="978" height="818" rx="14" fill="none" stroke="#30363d" stroke-width="1.5"/>
 
-  <!-- ═══════════ RESEARCH LAYER ═══════════ -->
-  <rect x="25" y="55" width="910" height="195" rx="12" fill="#13161d" stroke="#a371f7" stroke-width="1" opacity="0.9"/>
-  <rect x="25" y="55" width="910" height="28" rx="12" fill="#a371f7" opacity="0.1"/>
-  <text x="45" y="74" font-family="'Segoe UI',system-ui,sans-serif" font-size="13" fill="#a371f7" font-weight="700">🔬 RESEARCH LAYER — read-only agents generating ideas</text>
+  <!-- Header -->
+  <text x="490" y="34" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="20" font-weight="800" fill="#f0b429">🐝 COPILOT HIVE v2.0 — 14-AGENT SWARM &amp; CONTEXT-MODE ARCHITECTURE</text>
+  <text x="490" y="52" text-anchor="middle" font-family="monospace" font-size="11" fill="#8b949e">5 Smart Orchestration Topologies · BM25 + Porter Stemming + Trigram + RRF Knowledge Base · Magic UI Command Center</text>
 
-  <!-- Agent cards — row of 4 main + 1 support -->
+  <!-- ═══════════ LAYER 1: RESEARCH & GOVERNANCE (7 AGENTS) ═══════════ -->
+  <rect x="20" y="66" width="940" height="175" rx="12" fill="#13161d" stroke="#a371f7" stroke-width="1.2" opacity="0.95"/>
+  <rect x="20" y="66" width="940" height="26" rx="12" fill="#a371f7" opacity="0.12"/>
+  <text x="38" y="84" font-family="'Segoe UI',system-ui,sans-serif" font-size="12" fill="#a371f7" font-weight="700">🔬 RESEARCH &amp; GOVERNANCE SWARM — 7 Read-Only &amp; Executive Digest Agents (780+ ICE-Scored Ideas/Day)</text>
+
   <g filter="url(#shadow)">
     <!-- Website Designer -->
-    <rect x="40" y="95" width="170" height="140" rx="10" fill="#21262d" stroke="#a371f7" stroke-width="1.5"/>
-    <rect x="40" y="95" width="170" height="32" rx="10" fill="#a371f7" opacity="0.12"/>
-    <text x="125" y="117" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="14" fill="#e6edf3" font-weight="700">🎨 Website Designer</text>
-    <line x1="52" y1="132" x2="198" y2="132" stroke="#30363d" stroke-width="0.5"/>
-    <text x="125" y="152" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="12" fill="#8b949e">Public site UX</text>
-    <text x="125" y="170" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="12" fill="#8b949e">Animations · Mobile</text>
-    <text x="125" y="188" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="12" fill="#8b949e">Landing pages · SEO</text>
-    <rect x="55" y="202" width="100" height="20" rx="10" fill="#a371f7" opacity="0.15"/>
-    <text x="105" y="216" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="11" fill="#a371f7" font-weight="600">10 ideas / hour</text>
-    <circle cx="55" y="108" r="4" fill="#a371f7"><animate attributeName="opacity" values="0.4;1;0.4" dur="3s" repeatCount="indefinite"/></circle>
-  </g>
+    <rect x="34" y="102" width="150" height="125" rx="10" fill="#21262d" stroke="#a371f7" stroke-width="1.5"/>
+    <text x="109" y="122" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="12.5" fill="#e6edf3" font-weight="700">🎨 Website Designer</text>
+    <line x1="44" y1="130" x2="174" y2="130" stroke="#30363d" stroke-width="0.5"/>
+    <text x="109" y="148" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="11" fill="#8b949e">Public UX · SEO</text>
+    <text x="109" y="165" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="11" fill="#8b949e">Animations · Mobile</text>
+    <text x="109" y="182" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="11" fill="#8b949e">Conversion Flows</text>
+    <rect x="49" y="196" width="120" height="20" rx="10" fill="#a371f7" opacity="0.18"/>
+    <text x="109" y="210" text-anchor="middle" font-family="monospace" font-size="10" fill="#d2a8ff" font-weight="600">10 ideas/hr · ICE</text>
 
-  <g filter="url(#shadow)">
     <!-- Portal Designer -->
-    <rect x="225" y="95" width="170" height="140" rx="10" fill="#21262d" stroke="#a371f7" stroke-width="1.5"/>
-    <rect x="225" y="95" width="170" height="32" rx="10" fill="#a371f7" opacity="0.12"/>
-    <text x="310" y="117" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="14" fill="#e6edf3" font-weight="700">🖥️ Portal Designer</text>
-    <line x1="237" y1="132" x2="383" y2="132" stroke="#30363d" stroke-width="0.5"/>
-    <text x="310" y="152" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="12" fill="#8b949e">Dashboard · Admin</text>
-    <text x="310" y="170" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="12" fill="#8b949e">Charts · Data viz</text>
-    <text x="310" y="188" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="12" fill="#8b949e">Settings · Navigation</text>
-    <rect x="240" y="202" width="100" height="20" rx="10" fill="#a371f7" opacity="0.15"/>
-    <text x="290" y="216" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="11" fill="#a371f7" font-weight="600">10 ideas / hour</text>
-    <circle cx="240" y="108" r="4" fill="#a371f7"><animate attributeName="opacity" values="0.6;1;0.6" dur="2.5s" repeatCount="indefinite"/></circle>
-  </g>
+    <rect x="196" y="102" width="150" height="125" rx="10" fill="#21262d" stroke="#a371f7" stroke-width="1.5"/>
+    <text x="271" y="122" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="12.5" fill="#e6edf3" font-weight="700">🖥️ Portal Designer</text>
+    <line x1="206" y1="130" x2="336" y2="130" stroke="#30363d" stroke-width="0.5"/>
+    <text x="271" y="148" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="11" fill="#8b949e">Admin · Dashboards</text>
+    <text x="271" y="165" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="11" fill="#8b949e">Data Viz · Telemetry</text>
+    <text x="271" y="182" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="11" fill="#8b949e">Magic UI Components</text>
+    <rect x="211" y="196" width="120" height="20" rx="10" fill="#a371f7" opacity="0.18"/>
+    <text x="271" y="210" text-anchor="middle" font-family="monospace" font-size="10" fill="#d2a8ff" font-weight="600">10 ideas/hr · ICE</text>
 
-  <g filter="url(#shadow)">
     <!-- API Architect -->
-    <rect x="410" y="95" width="170" height="140" rx="10" fill="#21262d" stroke="#a371f7" stroke-width="1.5"/>
-    <rect x="410" y="95" width="170" height="32" rx="10" fill="#a371f7" opacity="0.12"/>
-    <text x="495" y="117" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="14" fill="#e6edf3" font-weight="700">⚙️ API Architect</text>
-    <line x1="422" y1="132" x2="568" y2="132" stroke="#30363d" stroke-width="0.5"/>
-    <text x="495" y="152" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="12" fill="#8b949e">Backend · Scanners</text>
-    <text x="495" y="170" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="12" fill="#8b949e">Performance · APIs</text>
-    <text x="495" y="188" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="12" fill="#8b949e">Orchestration · Tools</text>
-    <rect x="425" y="202" width="100" height="20" rx="10" fill="#a371f7" opacity="0.15"/>
-    <text x="475" y="216" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="11" fill="#a371f7" font-weight="600">10 ideas / hour</text>
-    <circle cx="425" y="108" r="4" fill="#a371f7"><animate attributeName="opacity" values="0.5;1;0.5" dur="3.5s" repeatCount="indefinite"/></circle>
-  </g>
+    <rect x="358" y="102" width="150" height="125" rx="10" fill="#21262d" stroke="#a371f7" stroke-width="1.5"/>
+    <text x="433" y="122" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="12.5" fill="#e6edf3" font-weight="700">⚙️ API Architect</text>
+    <line x1="368" y1="130" x2="498" y2="130" stroke="#30363d" stroke-width="0.5"/>
+    <text x="433" y="148" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="11" fill="#8b949e">Backend · Caching</text>
+    <text x="433" y="165" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="11" fill="#8b949e">Throughput · Queues</text>
+    <text x="433" y="182" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="11" fill="#8b949e">Schema &amp; Contracts</text>
+    <rect x="373" y="196" width="120" height="20" rx="10" fill="#a371f7" opacity="0.18"/>
+    <text x="433" y="210" text-anchor="middle" font-family="monospace" font-size="10" fill="#d2a8ff" font-weight="600">10 ideas/hr · ICE</text>
 
-  <g filter="url(#shadow)">
     <!-- Radical Visionary -->
-    <rect x="595" y="95" width="170" height="140" rx="10" fill="#21262d" stroke="#f85149" stroke-width="2"/>
-    <rect x="595" y="95" width="170" height="32" rx="10" fill="#f85149" opacity="0.12"/>
-    <text x="680" y="117" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="14" fill="#e6edf3" font-weight="700">🔥 Radical Visionary</text>
-    <line x1="607" y1="132" x2="753" y2="132" stroke="#30363d" stroke-width="0.5"/>
-    <text x="680" y="152" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="12" fill="#f8d7c4">Game-changers only</text>
-    <text x="680" y="170" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="12" fill="#8b949e">Competitor analysis</text>
-    <text x="680" y="188" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="12" fill="#8b949e">AI innovation · 10x</text>
-    <rect x="610" y="202" width="110" height="20" rx="10" fill="#f85149" opacity="0.15"/>
-    <text x="665" y="216" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="11" fill="#f85149" font-weight="600">5 radical / 2 hours</text>
-    <circle cx="610" y="108" r="4" fill="#f85149"><animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite"/></circle>
+    <rect x="520" y="102" width="155" height="125" rx="10" fill="#21262d" stroke="#f85149" stroke-width="2"/>
+    <text x="597" y="122" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="12.5" fill="#e6edf3" font-weight="700">🔥 Radical Visionary</text>
+    <line x1="530" y1="130" x2="665" y2="130" stroke="#30363d" stroke-width="0.5"/>
+    <text x="597" y="148" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="11" fill="#ffb4a9">10x Game-Changers</text>
+    <text x="597" y="165" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="11" fill="#8b949e">Competitor Moat</text>
+    <text x="597" y="182" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="11" fill="#8b949e">AI Workflows</text>
+    <rect x="537" y="196" width="120" height="20" rx="10" fill="#f85149" opacity="0.2"/>
+    <text x="597" y="210" text-anchor="middle" font-family="monospace" font-size="10" fill="#ff7b72" font-weight="600">5 radical / 2 hrs</text>
+
+    <!-- Governance Trio: Lawyer + Compliance + Reporter -->
+    <rect x="687" y="102" width="258" height="125" rx="10" fill="#21262d" stroke="#00d4ff" stroke-width="1.5"/>
+    <text x="816" y="122" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="12.5" fill="#e6edf3" font-weight="700">⚖️ Lawyer · 📋 Compliance · 📧 Reporter</text>
+    <line x1="699" y1="130" x2="933" y2="130" stroke="#30363d" stroke-width="0.5"/>
+    <text x="816" y="148" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="11" fill="#8b949e">⚖️ Lawyer: GDPR, CCPA, ToS, Privacy</text>
+    <text x="816" y="166" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="11" fill="#8b949e">📋 Compliance: SOC2, HIPAA, ISO 27001</text>
+    <text x="816" y="184" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="11" fill="#8b949e">📧 Reporter: Daily/Weekly HTML Digests</text>
+    <rect x="716" y="196" width="200" height="20" rx="10" fill="#00d4ff" opacity="0.15"/>
+    <text x="816" y="210" text-anchor="middle" font-family="monospace" font-size="10" fill="#00d4ff" font-weight="600">Continuous Audit &amp; Executive Reports</text>
   </g>
 
-  <g filter="url(#shadow)">
-    <!-- Lawyer + Compliance -->
-    <rect x="780" y="95" width="140" height="140" rx="10" fill="#21262d" stroke="#7d8590" stroke-width="1"/>
-    <rect x="780" y="95" width="140" height="32" rx="10" fill="#7d8590" opacity="0.08"/>
-    <text x="850" y="117" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="13" fill="#e6edf3" font-weight="700">⚖️📋 Support</text>
-    <line x1="792" y1="132" x2="908" y2="132" stroke="#30363d" stroke-width="0.5"/>
-    <text x="850" y="154" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="12" fill="#8b949e">Lawyer — Legal</text>
-    <text x="850" y="172" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="12" fill="#8b949e">Privacy · ToS</text>
-    <line x1="805" y1="182" x2="895" y2="182" stroke="#30363d" stroke-width="0.3"/>
-    <text x="850" y="198" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="12" fill="#8b949e">Compliance</text>
-    <text x="850" y="216" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="12" fill="#8b949e">SOC2 · HIPAA</text>
-  </g>
+  <!-- ═══════════ LAYER 2: CONTEXT-MODE & TOPOLOGY INTELLIGENCE HUB ═══════════ -->
+  <rect x="20" y="256" width="940" height="92" rx="12" fill="#101827" stroke="url(#beamGrad)" stroke-width="2"/>
+  <text x="40" y="280" font-family="'Segoe UI',system-ui,sans-serif" font-size="13" fill="#00d4ff" font-weight="700">🧠 CONTEXT-MODE KNOWLEDGE BASE (BM25 + Porter Stemming + Trigram + RRF) &amp; 5 SMART TOPOLOGIES</text>
+  <text x="40" y="301" font-family="monospace" font-size="11" fill="#c9d1d9">• Indexes ideas/*.md, changelogs, git history &amp; audit logs → 94%+ context window token savings</text>
+  <text x="40" y="319" font-family="monospace" font-size="11" fill="#c9d1d9">• Think-in-Code Sandbox (ctx-exec) processes large logs out-of-context · Pre-configured via .mcp.json</text>
+  <text x="40" y="337" font-family="monospace" font-size="11" fill="#a371f7">• Topologies: [🔄 Cyclic Pipeline] [⭐ Star Hub] [🕸️ DAG Mesh] [🧠 Adaptive Swarm (ICE+Utility)] [🛡️ Self-Healing Ring]</text>
 
-  <!-- Animated flow lines from research → ideas hub -->
-  <g>
-    <line x1="125" y1="238" x2="125" y2="264" stroke="#a371f7" stroke-width="2" stroke-dasharray="4,3">
-      <animate attributeName="stroke-dashoffset" values="0;-14" dur="1s" repeatCount="indefinite"/>
-    </line>
-    <line x1="310" y1="238" x2="310" y2="264" stroke="#a371f7" stroke-width="2" stroke-dasharray="4,3">
-      <animate attributeName="stroke-dashoffset" values="0;-14" dur="1.2s" repeatCount="indefinite"/>
-    </line>
-    <line x1="495" y1="238" x2="495" y2="264" stroke="#a371f7" stroke-width="2" stroke-dasharray="4,3">
-      <animate attributeName="stroke-dashoffset" values="0;-14" dur="0.8s" repeatCount="indefinite"/>
-    </line>
-    <line x1="680" y1="238" x2="680" y2="264" stroke="#f85149" stroke-width="2" stroke-dasharray="4,3">
-      <animate attributeName="stroke-dashoffset" values="0;-14" dur="0.6s" repeatCount="indefinite"/>
-    </line>
-    <line x1="850" y1="238" x2="850" y2="264" stroke="#7d8590" stroke-width="1.5" stroke-dasharray="4,3">
-      <animate attributeName="stroke-dashoffset" values="0;-14" dur="1.5s" repeatCount="indefinite"/>
-    </line>
-  </g>
-
-  <!-- Ideas Hub -->
-  <rect x="70" y="265" width="820" height="42" rx="10" fill="#1c2333" stroke="#58a6ff" stroke-width="1.5"/>
-  <text x="480" y="291" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="15" fill="#58a6ff" font-weight="600">💡 ideas/*.md — 780+ ideas per day flowing to Developer</text>
-  <rect x="72" y="302" width="0" height="3" rx="1" fill="#58a6ff" opacity="0.6">
-    <animate attributeName="width" values="0;816;0" dur="6s" repeatCount="indefinite"/>
-  </rect>
-
-  <!-- ═══════════ PIPELINE LAYER ═══════════ -->
-  <rect x="25" y="320" width="910" height="195" rx="12" fill="#13161d" stroke="#3fb950" stroke-width="1" opacity="0.9"/>
-  <rect x="25" y="320" width="910" height="28" rx="12" fill="#3fb950" opacity="0.1"/>
-  <text x="45" y="339" font-family="'Segoe UI',system-ui,sans-serif" font-size="13" fill="#3fb950" font-weight="700">⚡ EVENT-DRIVEN PIPELINE — continuous develop → deploy → verify → audit loop</text>
-
-  <!-- Pipeline boxes -->
-  <g filter="url(#shadow)">
-    <!-- Developer -->
-    <rect x="45" y="360" width="175" height="90" rx="10" fill="#21262d" stroke="#3fb950" stroke-width="2"/>
-    <rect x="45" y="360" width="175" height="30" rx="10" fill="#3fb950" opacity="0.1"/>
-    <circle cx="60" cy="375" r="5" fill="#3fb950"><animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" repeatCount="indefinite"/></circle>
-    <text x="135" y="381" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="15" fill="#e6edf3" font-weight="700">🔧 Developer</text>
-    <text x="132" y="410" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="12" fill="#8b949e">Picks best ideas</text>
-    <text x="132" y="428" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="12" fill="#8b949e">Implements features</text>
-    <text x="132" y="443" text-anchor="middle" font-family="monospace" font-size="11" fill="#3fb950">→ git push</text>
-  </g>
-
-  <!-- Arrow -->
-  <line x1="225" y1="405" x2="265" y2="405" stroke="#3fb950" stroke-width="2.5" marker-end="url(#arrowG)" stroke-dasharray="6,3">
-    <animate attributeName="stroke-dashoffset" values="0;-18" dur="0.8s" repeatCount="indefinite"/>
-  </line>
-
-  <g filter="url(#shadow)">
-    <!-- GitHub Actions -->
-    <rect x="270" y="360" width="175" height="90" rx="10" fill="#21262d" stroke="#f0b429" stroke-width="2"/>
-    <rect x="270" y="360" width="175" height="30" rx="10" fill="#f0b429" opacity="0.1"/>
-    <circle cx="285" cy="375" r="5" fill="#f0b429"><animate attributeName="opacity" values="0.5;1;0.5" dur="1s" repeatCount="indefinite"/></circle>
-    <text x="360" y="381" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="15" fill="#e6edf3" font-weight="700">🚀 Deploy</text>
-    <text x="357" y="410" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="12" fill="#8b949e">GitHub Actions</text>
-    <text x="357" y="428" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="12" fill="#8b949e">Build container</text>
-    <text x="357" y="443" text-anchor="middle" font-family="monospace" font-size="11" fill="#f0b429">SSH deploy</text>
-  </g>
-
-  <!-- Arrow -->
-  <line x1="450" y1="405" x2="490" y2="405" stroke="#58a6ff" stroke-width="2.5" marker-end="url(#arrow)" stroke-dasharray="6,3">
-    <animate attributeName="stroke-dashoffset" values="0;-18" dur="0.8s" repeatCount="indefinite"/>
-  </line>
+  <!-- ═══════════ LAYER 3: EXECUTION, VERIFICATION & SECURITY PIPELINE (6 AGENTS) ═══════════ -->
+  <rect x="20" y="362" width="940" height="220" rx="12" fill="#13161d" stroke="#3fb950" stroke-width="1.2" opacity="0.95"/>
+  <rect x="20" y="362" width="940" height="26" rx="12" fill="#3fb950" opacity="0.12"/>
+  <text x="38" y="380" font-family="'Segoe UI',system-ui,sans-serif" font-size="12" fill="#3fb950" font-weight="700">⚡ SMART ORCHESTRATION &amp; VERIFICATION PIPELINE — Develop → Scan → Deploy → Test → Audit</text>
 
   <g filter="url(#shadow)">
     <!-- Dispatcher -->
-    <rect x="495" y="360" width="175" height="90" rx="10" fill="#21262d" stroke="#58a6ff" stroke-width="2.5"/>
-    <rect x="495" y="360" width="175" height="30" rx="10" fill="#58a6ff" opacity="0.1"/>
-    <circle cx="510" cy="375" r="5" fill="#58a6ff">
-      <animate attributeName="r" values="3;6;3" dur="1s" repeatCount="indefinite"/>
-      <animate attributeName="opacity" values="0.5;1;0.5" dur="1s" repeatCount="indefinite"/>
-    </circle>
-    <text x="585" y="381" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="15" fill="#e6edf3" font-weight="700">📡 Dispatcher</text>
-    <text x="582" y="410" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="12" fill="#8b949e">Checks every 60s</text>
-    <text x="582" y="428" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="12" fill="#58a6ff" font-weight="600">Verify new version</text>
-    <text x="582" y="443" text-anchor="middle" font-family="monospace" font-size="11" fill="#8b949e">/api/version ✓</text>
-  </g>
+    <rect x="34" y="400" width="142" height="110" rx="10" fill="#21262d" stroke="#58a6ff" stroke-width="2"/>
+    <text x="105" y="422" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="13" fill="#e6edf3" font-weight="700">📡 Dispatcher</text>
+    <text x="105" y="444" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="11" fill="#58a6ff">Topology Router</text>
+    <text x="105" y="462" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="11" fill="#8b949e">Utility Scoring</text>
+    <text x="105" y="480" text-anchor="middle" font-family="monospace" font-size="10" fill="#8b949e">Every 60s · Lock</text>
+    <text x="105" y="498" text-anchor="middle" font-family="monospace" font-size="10" fill="#3fb950">next-agent CLI</text>
 
-  <!-- Arrow -->
-  <line x1="675" y1="405" x2="715" y2="405" stroke="#58a6ff" stroke-width="2.5" marker-end="url(#arrow)" stroke-dasharray="6,3">
-    <animate attributeName="stroke-dashoffset" values="0;-18" dur="0.8s" repeatCount="indefinite"/>
-  </line>
+    <!-- Developer -->
+    <rect x="192" y="400" width="142" height="110" rx="10" fill="#21262d" stroke="#3fb950" stroke-width="2"/>
+    <text x="263" y="422" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="13" fill="#e6edf3" font-weight="700">🔧 Developer</text>
+    <text x="263" y="444" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="11" fill="#8b949e">Queries ctx-search</text>
+    <text x="263" y="462" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="11" fill="#8b949e">Builds top ICE ideas</text>
+    <text x="263" y="480" text-anchor="middle" font-family="monospace" font-size="10" fill="#8b949e">Stamps .build-id</text>
+    <text x="263" y="498" text-anchor="middle" font-family="monospace" font-size="10" fill="#3fb950">→ git push</text>
 
-  <g filter="url(#shadow)">
+    <!-- GitGuardian -->
+    <rect x="350" y="400" width="142" height="110" rx="10" fill="#21262d" stroke="#f0b429" stroke-width="1.8"/>
+    <text x="421" y="422" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="13" fill="#e6edf3" font-weight="700">🔐 GitGuardian</text>
+    <text x="421" y="444" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="11" fill="#8b949e">Secret &amp; Key Scan</text>
+    <text x="421" y="462" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="11" fill="#8b949e">Git History Audit</text>
+    <text x="421" y="480" text-anchor="middle" font-family="monospace" font-size="10" fill="#f0b429">Entropy Analysis</text>
+    <text x="421" y="498" text-anchor="middle" font-family="monospace" font-size="10" fill="#3fb950">Zero-Leak Gate</text>
+
+    <!-- Deployer -->
+    <rect x="508" y="400" width="142" height="110" rx="10" fill="#21262d" stroke="#58a6ff" stroke-width="1.8"/>
+    <text x="579" y="422" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="13" fill="#e6edf3" font-weight="700">🚀 Deployer</text>
+    <text x="579" y="444" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="11" fill="#8b949e">Docker Compose</text>
+    <text x="579" y="462" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="11" fill="#58a6ff">/api/version Check</text>
+    <text x="579" y="480" text-anchor="middle" font-family="monospace" font-size="10" fill="#8b949e">Auto-Rollback</text>
+    <text x="579" y="498" text-anchor="middle" font-family="monospace" font-size="10" fill="#3fb950">Build Verified ✓</text>
+
+    <!-- Regression Test -->
+    <rect x="666" y="400" width="142" height="110" rx="10" fill="#21262d" stroke="#a371f7" stroke-width="1.8"/>
+    <text x="737" y="422" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="13" fill="#e6edf3" font-weight="700">🧪 Regression</text>
+    <text x="737" y="444" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="11" fill="#8b949e">Parallel Test Suite</text>
+    <text x="737" y="462" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="11" fill="#8b949e">HTTP Endpoint Probe</text>
+    <text x="737" y="480" text-anchor="middle" font-family="monospace" font-size="10" fill="#d2a8ff">Auto-Files Bugs</text>
+    <text x="737" y="498" text-anchor="middle" font-family="monospace" font-size="10" fill="#3fb950">Smoke Pass ✓</text>
+
     <!-- Auditor -->
-    <rect x="720" y="360" width="175" height="90" rx="10" fill="#21262d" stroke="#3fb950" stroke-width="2"/>
-    <rect x="720" y="360" width="175" height="30" rx="10" fill="#3fb950" opacity="0.1"/>
-    <circle cx="735" cy="375" r="5" fill="#3fb950"><animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite"/></circle>
-    <text x="810" y="381" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="15" fill="#e6edf3" font-weight="700">🔍 Auditor</text>
-    <text x="807" y="410" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="12" fill="#8b949e">Security audit</text>
-    <text x="807" y="428" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="12" fill="#8b949e">Tests · Bug fixes</text>
-    <text x="807" y="443" text-anchor="middle" font-family="monospace" font-size="11" fill="#3fb950">→ git push</text>
+    <rect x="824" y="400" width="122" height="110" rx="10" fill="#21262d" stroke="#3fb950" stroke-width="2"/>
+    <text x="885" y="422" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="13" fill="#e6edf3" font-weight="700">🔍 Auditor</text>
+    <text x="885" y="444" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="11" fill="#8b949e">OWASP &amp; Diff</text>
+    <text x="885" y="462" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="11" fill="#8b949e">Code Quality</text>
+    <text x="885" y="480" text-anchor="middle" font-family="monospace" font-size="10" fill="#8b949e">Auto-Patches</text>
+    <text x="885" y="498" text-anchor="middle" font-family="monospace" font-size="10" fill="#3fb950">→ git push</text>
   </g>
 
-  <!-- Loop arrow -->
-  <path d="M 895 405 Q 930 405 930 475 Q 930 495 480 495 Q 30 495 30 475 Q 30 455 45 405" fill="none" stroke="#58a6ff" stroke-width="2" stroke-dasharray="8,4" marker-end="url(#arrow)">
-    <animate attributeName="stroke-dashoffset" values="0;-24" dur="2.5s" repeatCount="indefinite"/>
-  </path>
-  <rect x="400" y="480" width="160" height="24" rx="12" fill="#161b22" stroke="#58a6ff" stroke-width="1"/>
-  <text x="480" y="496" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="12" fill="#58a6ff" font-weight="600">♻️ continuous loop</text>
+  <!-- Continuous Loop Bar -->
+  <rect x="34" y="526" width="912" height="40" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+  <text x="490" y="551" text-anchor="middle" font-family="monospace" font-size="11.5" fill="#58a6ff" font-weight="600">♻️  Continuous Autonomous Loop: Dispatcher → Developer → GitGuardian → Deployer → Regression → Auditor ──► Context-Mode Sync</text>
 
-  <!-- ═══════════ EMERGENCY LAYER ═══════════ -->
-  <rect x="25" y="530" width="910" height="170" rx="12" fill="#13161d" stroke="#f85149" stroke-width="1" opacity="0.9"/>
-  <rect x="25" y="530" width="910" height="28" rx="12" fill="#f85149" opacity="0.1"/>
-  <text x="45" y="549" font-family="'Segoe UI',system-ui,sans-serif" font-size="13" fill="#f85149" font-weight="700">🛡️ MONITORING &amp; SELF-HEALING — automatic failure detection and recovery</text>
+  <!-- ═══════════ LAYER 4: SELF-HEALING & MAGIC UI COMMAND CENTER ═══════════ -->
+  <rect x="20" y="596" width="940" height="204" rx="12" fill="#13161d" stroke="#f85149" stroke-width="1.2" opacity="0.95"/>
+  <rect x="20" y="596" width="940" height="26" rx="12" fill="#f85149" opacity="0.12"/>
+  <text x="38" y="614" font-family="'Segoe UI',system-ui,sans-serif" font-size="12" fill="#f85149" font-weight="700">🛡️ SELF-HEALING ESCALATION &amp; ✨ MAGIC UI WEB COMMAND CENTER (:9095)</text>
 
   <g filter="url(#shadow)">
-    <!-- Uptime Kuma -->
-    <rect x="45" y="570" width="210" height="115" rx="10" fill="#21262d" stroke="#3fb950" stroke-width="1.5"/>
-    <rect x="45" y="570" width="210" height="30" rx="10" fill="#3fb950" opacity="0.1"/>
-    <circle cx="60" cy="585" r="5" fill="#3fb950"><animate attributeName="r" values="3;6;3" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.4;0.8;0.4" dur="2s" repeatCount="indefinite"/></circle>
-    <text x="152" y="590" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="14" fill="#e6edf3" font-weight="700">📊 Uptime Kuma</text>
-    <text x="150" y="618" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="12" fill="#3fb950">✅ Website  ✅ API</text>
-    <text x="150" y="636" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="12" fill="#3fb950">✅ Database ✅ Docker</text>
-    <text x="150" y="660" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="11" fill="#8b949e">8 monitors · every 60s</text>
-    <text x="150" y="678" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="11" fill="#8b949e">Alert after 30 min</text>
-  </g>
+    <!-- Uptime Kuma + Health Webhook -->
+    <rect x="34" y="634" width="215" height="148" rx="10" fill="#21262d" stroke="#3fb950" stroke-width="1.5"/>
+    <text x="141" y="656" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="13" fill="#e6edf3" font-weight="700">📊 Uptime Kuma + Webhook</text>
+    <text x="141" y="678" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="11" fill="#3fb950">✅ HTTP · ✅ API · ✅ Docker</text>
+    <text x="141" y="698" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="11" fill="#8b949e">HMAC-Authenticated Bridge</text>
+    <text x="141" y="718" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="11" fill="#8b949e">Writes .alert-context.json</text>
+    <text x="141" y="742" text-anchor="middle" font-family="monospace" font-size="10" fill="#f0b429">Breaker Retry (2x) → Escalate</text>
+    <text x="141" y="764" text-anchor="middle" font-family="monospace" font-size="10" fill="#58a6ff">📱 SmartThings Push Alerts</text>
 
-  <!-- Arrow -->
-  <line x1="260" y1="628" x2="300" y2="628" stroke="#f85149" stroke-width="2" stroke-dasharray="5,3">
-    <animate attributeName="stroke-dashoffset" values="0;-16" dur="0.6s" repeatCount="indefinite"/>
-  </line>
-  <text x="280" y="618" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="10" fill="#f85149" font-weight="600">DOWN!</text>
-
-  <g filter="url(#shadow)">
-    <!-- Webhook -->
-    <rect x="305" y="570" width="210" height="115" rx="10" fill="#21262d" stroke="#f0b429" stroke-width="1.5"/>
-    <rect x="305" y="570" width="210" height="30" rx="10" fill="#f0b429" opacity="0.1"/>
-    <text x="410" y="590" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="14" fill="#e6edf3" font-weight="700">🔔 Health Webhook</text>
-    <text x="410" y="618" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="12" fill="#8b949e">Agent running? → skip</text>
-    <text x="410" y="636" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="12" fill="#8b949e">Cooldown? → skip</text>
-    <text x="410" y="658" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="12" fill="#f0b429">Writes alert context</text>
-    <text x="410" y="678" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="12" fill="#8b949e">Coordinates agents</text>
-  </g>
-
-  <!-- Arrow -->
-  <line x1="520" y1="628" x2="560" y2="628" stroke="#f85149" stroke-width="2.5" stroke-dasharray="5,3">
-    <animate attributeName="stroke-dashoffset" values="0;-16" dur="0.5s" repeatCount="indefinite"/>
-  </line>
-
-  <g filter="url(#shadow)">
     <!-- Emergency Fixer -->
-    <rect x="565" y="570" width="210" height="115" rx="10" fill="#21262d" stroke="#f85149" stroke-width="2.5"/>
-    <rect x="565" y="570" width="210" height="30" rx="10" fill="#f85149" opacity="0.12"/>
-    <circle cx="580" cy="585" r="5" fill="#f85149"><animate attributeName="opacity" values="0.3;1;0.3" dur="0.8s" repeatCount="indefinite"/></circle>
-    <text x="672" y="590" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="14" fill="#e6edf3" font-weight="700">🚑 Emergency Fixer</text>
-    <text x="670" y="618" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="12" fill="#f85149">Docker logs analysis</text>
-    <text x="670" y="636" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="12" fill="#f85149">HTTP diagnostics</text>
-    <text x="670" y="658" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="12" fill="#8b949e">Fix → Push → Deploy</text>
-    <text x="670" y="678" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="12" fill="#8b949e">Last resort escalation</text>
-  </g>
+    <rect x="265" y="634" width="225" height="148" rx="10" fill="#21262d" stroke="#f85149" stroke-width="2.2"/>
+    <text x="377" y="656" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="13" fill="#e6edf3" font-weight="700">🚑 Emergency Fixer (Agent #14)</text>
+    <text x="377" y="678" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="11" fill="#ff7b72">Container Logs + Stack Traces</text>
+    <text x="377" y="698" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="11" fill="#8b949e">Context-Mode Error Resolution KB</text>
+    <text x="377" y="718" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="11" fill="#8b949e">Hot-Patches + Rebuilds Container</text>
+    <text x="377" y="742" text-anchor="middle" font-family="monospace" font-size="10" fill="#3fb950">Auto-Rollback on 2nd Failure</text>
+    <text x="377" y="764" text-anchor="middle" font-family="monospace" font-size="10" fill="#f85149">Circuit-Breaker Recovery</text>
 
-  <g filter="url(#shadow)">
-    <!-- SmartThings -->
-    <rect x="800" y="570" width="120" height="115" rx="10" fill="#21262d" stroke="#58a6ff" stroke-width="1.5"/>
-    <rect x="800" y="570" width="120" height="30" rx="10" fill="#58a6ff" opacity="0.1"/>
-    <text x="860" y="590" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="14" fill="#e6edf3" font-weight="700">📱 Alert</text>
-    <text x="860" y="620" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="12" fill="#58a6ff">SmartThings</text>
-    <text x="860" y="640" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="12" fill="#8b949e">Push to</text>
-    <text x="860" y="658" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="12" fill="#8b949e">your phone</text>
-    <text x="860" y="678" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="12" fill="#8b949e">on failure</text>
+    <!-- Magic UI Web Command Center -->
+    <rect x="506" y="634" width="440" height="148" rx="10" fill="#1a1f35" stroke="#00d4ff" stroke-width="2"/>
+    <text x="726" y="656" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="13.5" fill="#00d4ff" font-weight="700">✨ Magic UI Web Command Center (dashboard.js)</text>
+    <text x="726" y="678" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="11" fill="#e6edf3">Interactive 5-Topology Studio · AnimatedBeam &amp; OrbitingCircles Swarm View</text>
+    <text x="726" y="698" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="11" fill="#8b949e">MagicCard · BorderBeam · NumberTicker · AnimatedCircularProgressBar</text>
+    <text x="726" y="718" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="11" fill="#8b949e">Context-Mode Search &amp; Sandbox Studio · Ideas/Bugs CRUD · Live Terminal</text>
+    <text x="726" y="742" text-anchor="middle" font-family="monospace" font-size="10" fill="#a371f7">CLI: copilot-hive topology | next-agent | ctx-search | doctor | dashboard</text>
+    <text x="726" y="764" text-anchor="middle" font-family="monospace" font-size="10" fill="#3fb950">Multi-Project Fleet Management · Zero-Downtime Agent Control</text>
   </g>
-
-  <!-- Arrow Emergency → SmartThings -->
-  <line x1="780" y1="628" x2="795" y2="628" stroke="#58a6ff" stroke-width="1.5" stroke-dasharray="3,2">
-    <animate attributeName="stroke-dashoffset" values="0;-10" dur="1s" repeatCount="indefinite"/>
-  </line>
 </svg>

@@ -44,3 +44,8 @@ copilot --deny-tool "bash(git push*)" \
         --deny-tool "bash(git rm*)" \
         --add-dir "/opt/yourproject:ro"
 ```
+
+## Context-Mode & Smart Swarm Protocol
+
+- Use `ctx_fetch_and_index` + `ctx_search` when analyzing live pages or competitor UX so raw HTML never bloats the context window.
+- Incorporate high-conversion **Magic UI** motion primitives (`HyperText`, `ShimmerButton`, `Particles`, `MagicCard`, `AnimatedCircularProgressBar`) with concrete CSS/JS implementation specs.

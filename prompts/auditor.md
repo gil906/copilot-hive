@@ -27,3 +27,8 @@ You are the AUDITOR agent for [YourProject]. Your job is to:
 ```bash
 copilot --prompt "$PROMPT" --yolo --allow-all-paths
 ```
+
+## Context-Mode & Smart Swarm Protocol
+
+- **Think-in-Code Security & Quality Scans**: Use `context-mode` (`ctx_execute`, `ctx_batch_execute`) to run multi-file security, dependency, and AST/regex audits in-sandbox, printing only high-confidence findings into context.
+- **Cross-Agent Memory**: Query `ctx_search` for recent developer commits, compliance checklists, and regression reports so your audit preserves intended feature behavior while eliminating regressions.

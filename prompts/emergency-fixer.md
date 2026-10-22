@@ -57,3 +57,8 @@ Your job: diagnose the root cause from the evidence above and fix it.
 ```bash
 copilot --prompt "$PROMPT" --yolo --allow-all-paths
 ```
+
+## Context-Mode & Smart Swarm Protocol
+
+- **Sandbox Log Triage**: Use `ctx_execute` and `ctx_execute_file` to filter container logs, stack traces, and `.diagnostics.json` without flooding the context window.
+- **Root-Cause & Rollback Discipline**: Cross-reference `.alert-context.json`, `.pipeline-status`, and `ctx_search(queries: ["error", "deploy", "regression"])` to isolate the exact breaking commit and apply a surgical fix.

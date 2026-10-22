@@ -1,29 +1,40 @@
 #!/bin/bash
 
-# Load central configuration
+# Load central configuration & shared agent helpers
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 source "${SCRIPT_DIR}/config.sh"
+source "${SCRIPT_DIR}/lib/agent-helpers.sh"
+init_agent_env "deployer" "$@"
+check_agent_paused "deployer"
+acquire_agent_lock "deployer${PROJECT_ID:+-$PROJECT_ID}" || { echo "$(date) — SKIPPED: Another deployer instance running" >> "$LOG_FILE"; exit 0; }
 
 # ── Config ────────────────────────────────────────────────────────────────────
 PROJECT_DIR="${PROJECT_DIR:-/opt/yourproject}"
-LOG_FILE="${LOG_FILE:-/opt/copilot-hive/copilot-deployer.log}"
 COMPOSE_FILE="${COMPOSE_FILE:-/opt/docker-compose/yourproject.yml}"
-NOTIFY="/opt/copilot-hive/notify-smartthings.sh"
-CHANGELOG_DIR="${CHANGELOG_DIR:-/opt/copilot-hive/changelogs}"
+CONTAINER_API="${CONTAINER_API:-yourproject-api}"
+CONTAINER_WEB="${CONTAINER_WEB:-yourproject-web}"
+NOTIFY="${NOTIFY:-${SCRIPT_DIR}/notify-smartthings.sh}"
+CHANGELOG_DIR="${CHANGELOG_DIR:-${SCRIPT_DIR}/changelogs}"
 
 # ── Run ───────────────────────────────────────────────────────────────────────
 echo "======================================" >> "$LOG_FILE"
 echo "Deploy Started: $(date)" >> "$LOG_FILE"
+update_agent_status "deployer" "running" "Checking git commits for changes"
 
-cd "$PROJECT_DIR" || { echo "ERROR: project dir not found: $PROJECT_DIR" >> "$LOG_FILE"; exit 1; }
+cd "$PROJECT_DIR" || {
+  echo "ERROR: project dir not found: $PROJECT_DIR" >> "$LOG_FILE"
+  update_agent_status "deployer" "idle" "Project directory not found" "1"
+  exit 1
+}
 
 # Check if there are new commits since last deploy
-LAST_DEPLOY_SHA_FILE="/opt/copilot-hive/.last_deploy_sha"
+LAST_DEPLOY_SHA_FILE="${LOG_DIR}/.last_deploy_sha${PROJECT_LOG_SUFFIX:-}"
 CURRENT_SHA=$(git -C "$PROJECT_DIR" rev-parse HEAD 2>/dev/null)
 LAST_SHA=$(cat "$LAST_DEPLOY_SHA_FILE" 2>/dev/null || echo "none")
 
 if [ "$CURRENT_SHA" = "$LAST_SHA" ]; then
   echo "No new commits since last deploy ($CURRENT_SHA). Skipping." >> "$LOG_FILE"
+  update_agent_status "deployer" "idle" "Up to date (${CURRENT_SHA:0:8})" "0"
   exit 0
 fi
 
@@ -37,10 +48,10 @@ CHANGED_FILES=$(git -C "$PROJECT_DIR" diff --name-only "${LAST_SHA}..${CURRENT_S
 REBUILD_API=false
 REBUILD_WEB=false
 
-if echo "$CHANGED_FILES" | grep -qE "^(app/|Dockerfile\.api|requirements)"; then
+if echo "$CHANGED_FILES" | grep -qE "^(app/|backend/|api/|Dockerfile\.api|requirements|package\.json)"; then
   REBUILD_API=true
 fi
-if echo "$CHANGED_FILES" | grep -qE "^(frontend/|Dockerfile\.frontend)"; then
+if echo "$CHANGED_FILES" | grep -qE "^(frontend/|web/|ui/|Dockerfile\.frontend)"; then
   REBUILD_WEB=true
 fi
 # If we can't determine, rebuild both
@@ -52,28 +63,30 @@ fi
 DEPLOY_OK=true
 
 if [ "$REBUILD_API" = true ]; then
-  echo "Rebuilding yourproject-api..." >> "$LOG_FILE"
-  docker compose -f "$COMPOSE_FILE" build --no-cache yourproject-api >> "$LOG_FILE" 2>&1
+  update_agent_status "deployer" "running" "Rebuilding ${CONTAINER_API}"
+  echo "Rebuilding ${CONTAINER_API}..." >> "$LOG_FILE"
+  docker compose -f "$COMPOSE_FILE" build --no-cache "$CONTAINER_API" >> "$LOG_FILE" 2>&1
   if [ $? -ne 0 ]; then
     echo "ERROR: API build failed!" >> "$LOG_FILE"
     "$NOTIFY" "DEPLOYER: API Docker build FAILED at $(date '+%H:%M')" >> "$LOG_FILE" 2>&1
     DEPLOY_OK=false
   else
-    echo "Restarting yourproject-api..." >> "$LOG_FILE"
-    docker compose -f "$COMPOSE_FILE" up -d yourproject-api >> "$LOG_FILE" 2>&1
+    echo "Restarting ${CONTAINER_API}..." >> "$LOG_FILE"
+    docker compose -f "$COMPOSE_FILE" up -d "$CONTAINER_API" >> "$LOG_FILE" 2>&1
   fi
 fi
 
 if [ "$REBUILD_WEB" = true ]; then
-  echo "Rebuilding yourproject-web..." >> "$LOG_FILE"
-  docker compose -f "$COMPOSE_FILE" build --no-cache yourproject-web >> "$LOG_FILE" 2>&1
+  update_agent_status "deployer" "running" "Rebuilding ${CONTAINER_WEB}"
+  echo "Rebuilding ${CONTAINER_WEB}..." >> "$LOG_FILE"
+  docker compose -f "$COMPOSE_FILE" build --no-cache "$CONTAINER_WEB" >> "$LOG_FILE" 2>&1
   if [ $? -ne 0 ]; then
     echo "ERROR: Web build failed!" >> "$LOG_FILE"
     "$NOTIFY" "DEPLOYER: Web Docker build FAILED at $(date '+%H:%M')" >> "$LOG_FILE" 2>&1
     DEPLOY_OK=false
   else
-    echo "Restarting yourproject-web..." >> "$LOG_FILE"
-    docker compose -f "$COMPOSE_FILE" up -d yourproject-web >> "$LOG_FILE" 2>&1
+    echo "Restarting ${CONTAINER_WEB}..." >> "$LOG_FILE"
+    docker compose -f "$COMPOSE_FILE" up -d "$CONTAINER_WEB" >> "$LOG_FILE" 2>&1
   fi
 fi
 
@@ -83,15 +96,16 @@ fi
 
 # Wait for containers to start, then health check
 if [ "$REBUILD_API" = true ] || [ "$REBUILD_WEB" = true ]; then
+  update_agent_status "deployer" "running" "Verifying container health"
   echo "Waiting 30s for containers to start..." >> "$LOG_FILE"
   sleep 30
 
   echo "Health checks:" >> "$LOG_FILE"
-  API_STATUS=$(curl -sf -o /dev/null -w "%{http_code}" http://localhost:8080/ 2>/dev/null || echo "000")
-  WEB_STATUS=$(curl -sf -o /dev/null -w "%{http_code}" http://localhost:8080/ 2>/dev/null || echo "000")
+  API_STATUS=$(curl -sf -o /dev/null -w "%{http_code}" "${HEALTH_URL:-http://localhost:8080/}" 2>/dev/null || echo "000")
+  WEB_STATUS=$(curl -sf -o /dev/null -w "%{http_code}" "${HEALTH_URL:-http://localhost:8080/}" 2>/dev/null || echo "000")
 
-  echo "  API (port 8080): $API_STATUS" >> "$LOG_FILE"
-  echo "  Web (port 9090): $WEB_STATUS" >> "$LOG_FILE"
+  echo "  API (${HEALTH_URL}): $API_STATUS" >> "$LOG_FILE"
+  echo "  Web (${HEALTH_URL}): $WEB_STATUS" >> "$LOG_FILE"
 
   if [ "$API_STATUS" = "000" ] || [ "$WEB_STATUS" = "000" ]; then
     echo "WARNING: Some containers may not be healthy!" >> "$LOG_FILE"
@@ -123,8 +137,8 @@ CHANGELOG_FILE="${CHANGELOG_DIR}/deploy_${TIMESTAMP}.txt"
   echo "  DEPLOY RUN — $(date)"
   echo "  Previous SHA: $LAST_SHA"
   echo "  Current SHA:  $CURRENT_SHA"
-  echo "  Rebuilt API:  $REBUILD_API"
-  echo "  Rebuilt Web:  $REBUILD_WEB"
+  echo "  Rebuilt API:  $REBUILD_API ($CONTAINER_API)"
+  echo "  Rebuilt Web:  $REBUILD_WEB ($CONTAINER_WEB)"
   echo "  Success:      $DEPLOY_OK"
   echo "============================================"
   echo ""
@@ -132,5 +146,11 @@ CHANGELOG_FILE="${CHANGELOG_DIR}/deploy_${TIMESTAMP}.txt"
   git -C "$PROJECT_DIR" log --oneline "${LAST_SHA}..${CURRENT_SHA}" 2>/dev/null || echo "  (all)"
 } > "$CHANGELOG_FILE"
 echo "Changelog saved: $CHANGELOG_FILE" >> "$LOG_FILE"
+index_agent_output "deployer" "$CHANGELOG_FILE"
 
+if [ "$DEPLOY_OK" = true ]; then
+  update_agent_status "deployer" "idle" "" "0"
+else
+  update_agent_status "deployer" "idle" "Deploy failed" "1"
+fi
 echo "Deploy Finished: $(date)" >> "$LOG_FILE"

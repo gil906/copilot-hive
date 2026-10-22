@@ -8,10 +8,10 @@
 
 <br/><br/>
 
-[![Agents](https://img.shields.io/badge/AI_Agents-13-blueviolet?style=for-the-badge&logo=github-copilot&logoColor=white)](#-the-hive---13-agents)
-[![Pipeline](https://img.shields.io/badge/Pipeline-Event_Driven-green?style=for-the-badge&logo=rocket&logoColor=white)](#-event-driven-pipeline)
-[![Ideas/Day](https://img.shields.io/badge/Ideas%2FDay-780+-orange?style=for-the-badge&logo=lightbulb&logoColor=white)](#-idea-flow)
-[![Monitoring](https://img.shields.io/badge/Uptime_Kuma-Self_Healing-blue?style=for-the-badge&logo=uptimekuma&logoColor=white)](#-health-monitoring--self-healing)
+[![Agents](https://img.shields.io/badge/AI_Agents-14-blueviolet?style=for-the-badge&logo=github-copilot&logoColor=white)](#-the-hive---14-autonomous-agents)
+[![Topologies](https://img.shields.io/badge/Topologies-5_Smart_Modes-00d4ff?style=for-the-badge&logo=graphql&logoColor=white)](#-5-smart-orchestration-topologies)
+[![Context-Mode](https://img.shields.io/badge/Context--Mode-BM25_%2B_RRF_%2B_Sandbox-a371f7?style=for-the-badge&logo=databricks&logoColor=white)](#-context-mode-knowledge-base--sandbox)
+[![Command Center](https://img.shields.io/badge/Web_GUI-Magic_UI_v2.0-3fb950?style=for-the-badge&logo=react&logoColor=white)](#-magic-ui-web-command-center)
 [![Self-Healing](https://img.shields.io/badge/Deploys-Version_Verified-red?style=for-the-badge&logo=dependabot&logoColor=white)](#-version-verification)
 [![Platform](https://img.shields.io/badge/Platform-Linux_|_macOS_|_WSL_|_Docker-teal?style=for-the-badge&logo=docker&logoColor=white)](#-supported-platforms)
 
@@ -19,9 +19,9 @@
 
 *"What if your entire engineering team was AI — and never slept?"*
 
-**Copilot Hive** is an open-source framework for running **13 specialized GitHub Copilot CLI agents** as an autonomous development team. They research ideas, implement features, audit code, deploy changes, and fix failures — all without human intervention, 24/7.
+**Copilot Hive v2.0** is an open-source autonomous swarm framework powered by **14 specialized GitHub Copilot CLI agents**, **5 smart orchestration topologies** (including Multi-Factor Utility Scoring & ICE prioritization), a built-in **[Context-Mode](https://github.com/mksglu/context-mode) BM25/Trigram/RRF Knowledge Base & Think-in-Code Sandbox**, and a **Magic UI Web Command Center**. Agents research ideas, implement features, scan secrets, run regression tests, audit code, deploy changes, and self-heal failures — 24/7 without human intervention.
 
-[Architecture](#-architecture) · [Agents](#-the-hive---13-agents) · [Pipeline](#-event-driven-pipeline) · [Self-Healing](#-smart-failure-coordination) · [Get Started](#-getting-started)
+[Architecture](#-architecture) · [5 Topologies](#-5-smart-orchestration-topologies) · [Context-Mode](#-context-mode-knowledge-base--sandbox) · [Magic UI](#-magic-ui-web-command-center) · [14 Agents](#-the-hive---14-autonomous-agents) · [CLI v2.0](#-cli-v20--programmatic-sdk) · [Get Started](#-getting-started)
 
 </div>
 
@@ -35,19 +35,61 @@
 
 <br/>
 
-Three layers work together:
+Four coordinated layers operate continuously:
 
-| Layer | Agents | Purpose |
-|:------|:-------|:--------|
-| 🔬 **Research** | 6 read-only agents | Generate 780+ structured ideas per day |
-| ⚡ **Pipeline** | Developer ↔ Auditor | Implement → Deploy → Verify → Audit → Loop |
-| 🛡️ **Emergency** | Fixer + Kuma + SmartThings | Monitor, self-heal, alert on failures |
+| Layer | Agents & Engines | Purpose |
+|:------|:-----------------|:--------|
+| 🔬 **Research & Governance** | 7 read-only & digest agents | Generate 780+ ICE-scored ideas/day + legal/compliance/executive reports |
+| 🧠 **Intelligence & Context-Mode** | `hive-engine.js` + `context-mode.js` | 5 orchestration topologies, utility scoring, BM25+Trigram+RRF retrieval & sandbox |
+| ⚡ **Execution & Verification** | Dispatcher, Developer, GitGuardian, Deployer, Regression, Auditor | Implement → Secret Scan → Deploy → Smoke Test → Security Audit → Loop |
+| 🛡️ **Self-Healing & Command Center** | Emergency Fixer + Uptime Kuma + Magic UI | Circuit-breaker auto-recovery, rollback, push alerts, and real-time web studio |
 
 ---
 
-## 📸 Copilot Hive UI
+## 🕸️ 5 Smart Orchestration Topologies
 
-> This repo's actual interface is the **Copilot Hive Project Manager** in `dashboard.js` — a dark-mode control panel for registering projects, checking agent status, launching runs, and reviewing setup logs.
+Copilot Hive v2.0 replaces rigid single-loop scheduling with **5 selectable orchestration topologies** managed by `lib/hive-engine.js` (`copilot-hive topology [project-id] --set <mode>`):
+
+| Topology | ID | How It Routes Agents | Best For |
+|:---------|:---|:---------------------|:---------|
+| 🔄 **Cyclic Pipeline** | `cyclic-pipeline` | Deterministic ring: `Developer → GitGuardian → Deployer → Regression → Auditor` | Steady, predictable continuous delivery |
+| ⭐ **Star Hub** | `star-hub` | Central `Dispatcher` hub coordinates every specialist spoke with strict health checks between hops | High-governance apps requiring hub verification |
+| 🕸️ **DAG Dependency Mesh** | `dag-mesh` | Parallel **Fan-Out** research & verification stages feeding **Fan-In** synthesis and deployment gates | Maximum throughput on multi-core hosts |
+| 🧠 **Adaptive Swarm** *(Default)* | `adaptive-swarm` | Dynamic routing via **Multi-Factor Agent Utility Scoring** and **ICE Idea Prioritization** | Autonomous self-optimizing product velocity |
+| 🛡️ **Self-Healing Ring** | `self-healing-ring` | Circuit-breaker ring that isolates broken deploys, retries the breaker agent (2x), and escalates to `Emergency Fixer` | Mission-critical 99.99% uptime services |
+
+### Multi-Factor Utility Scoring & ICE Prioritization
+
+In `adaptive-swarm` mode, the Hive Engine computes a real-time utility score $U(a) \in [0, 1]$ for each agent:
+
+$$U(a) = w_1 \cdot \text{Urgency} + w_2 \cdot \text{Staleness} + w_3 \cdot \text{ICE}_{\text{backlog}} + w_4 \cdot \text{BugPressure} + w_5 \cdot \text{HealthPenalty}$$
+
+Every research idea in `ideas/*.md` and `ideas/admin_ideas.json` is ranked by its **ICE score** ($\text{Impact} \times \text{Confidence} \times \text{Ease}$) so the Developer agent always implements the highest-leverage improvements first.
+
+---
+
+## 🧠 Context-Mode Knowledge Base & Sandbox
+
+Copilot Hive v2.0 integrates **[Context-Mode](https://github.com/mksglu/context-mode)** both via MCP (`.mcp.json` pre-configured with `npx -y context-mode`) and natively via `lib/context-mode.js` so raw logs and massive markdown files never bloat agent context windows:
+
+- **Hybrid Multi-Strategy Search (`ctx-search`)**: Combines **Okapi BM25**, **Porter Stemming**, **3-gram Trigram Substring Matching**, and **Reciprocal Rank Fusion (RRF)** with proximity boosting to retrieve only the exact 300-byte windows an agent needs (achieving **90–96% context token savings**).
+- **Automatic Swarm Indexing (`ctx-index`)**: Automatically indexes `ideas/*.md`, `changelogs/`, `bugs.json`, and `implemented.log` with SHA-256 content hashes for instant staleness detection.
+- **Think-in-Code Sandbox (`ctx-exec`)**: Executes JavaScript, Python, or Shell analysis over multi-megabyte logs inside an isolated subprocess (`FILE_CONTENT`), returning only derived summaries to the agent.
+- **Live Savings Telemetry (`ctx-stats`)**: Tracks raw bytes processed vs. context bytes emitted, savings ratios, and estimated tokens saved per project.
+
+---
+
+## ✨ Magic UI Web Command Center
+
+> The **Copilot Hive Command Center** (`dashboard.js`, default `:9095`) is built with the **Magic UI** dark-mode design system — featuring interactive topology visualization, real-time agent telemetry, and a built-in Context-Mode studio.
+
+### Key Magic UI Components & Studios
+
+- **`MagicCard` & `BorderBeam`**: Spotlight-tracking glassmorphism project cards with animated gradient border beams for active agents.
+- **`AnimatedBeam` & `OrbitingCircles` Topology Visualizer**: Interactive 5-mode SVG topology studio showing live energy beams flowing between the 14 agents.
+- **`NumberTicker` & `AnimatedCircularProgressBar`**: Spring-animated counters for ideas/day, context token savings, and swarm health gauges.
+- **`ShimmerButton`, `HyperText`, `Particles` & `FlickeringGrid`**: High-contrast cybernetic controls and ambient neural backdrop.
+- **Interactive `Terminal` & Context-Mode Studio**: Stream live agent logs, run BM25+RRF searches, execute Think-in-Code sandbox snippets, and manage project ideas/bugs CRUD directly from the browser.
 
 ### 🧭 Fleet Overview
 
@@ -57,7 +99,7 @@ Three layers work together:
 
 <br/>
 
-From one screen you can wire up a repo, choose which agents should work on it, and watch the hive operate in real time.
+From one screen you can wire up a repo, choose which agents and topology should work on it, and watch the hive operate in real time.
 
 ### 🚀 Add Project Modal
 
@@ -79,37 +121,38 @@ Each project gets its own control surface with configuration, per-agent run butt
 
 ---
 
-## 🐝 The Hive — 13 Agents
+## 🐝 The Hive — 14 Autonomous Agents
 
-### 🔧 Code-Modifying Agents
+### 📡 Orchestrator & Pipeline Agents
 
-> These are the only agents that touch the codebase. They chain through the event-driven pipeline.
+| | Agent | Script / Prompt | What It Does | Trigger |
+|:--|:------|:----------------|:-------------|:--------|
+| 📡 | **Dispatcher** | `copilot-dispatcher.sh` · `dispatcher.md` | Orchestrates the 5 smart topologies, lockfiles, `/api/version` verification & retries | Every 60s |
+| 🔧 | **Developer** | `copilot-improve.sh` · `developer.md` | Queries Context-Mode & idea files, implements top ICE features, stamps `.build-id` & pushes | Pipeline / Swarm |
+| 🔍 | **Auditor** | `copilot-audit.sh` · `auditor.md` | Reviews new commits for OWASP vulnerabilities, bugs & code quality; pushes fixes | Post-Deploy |
+| 🚑 | **Emergency Fixer** | `copilot-emergencyfixer.sh` · `emergency-fixer.md` | Analyzes Docker logs + HTTP diagnostics, applies hotfixes or triggers git rollback | On failure escalation |
 
-| | Agent | What It Does | Trigger |
-|:--|:------|:------------|:--------|
-| 🔧 | **Developer** | Reads ALL idea files, implements the best ones, pushes to GitHub | Pipeline (continuous) |
-| 🔍 | **Auditor** | Security audit, tests, bug fixes, code quality review | Pipeline (after Developer) |
-| 🚑 | **Emergency Fixer** | Reads Docker logs + HTTP diagnostics, fixes critical issues | On failure (escalation) |
+### 🧪 Verification & Security Agents
 
-### 🔬 Research Agents
+| | Agent | Script / Prompt | What It Does | Trigger |
+|:--|:------|:----------------|:-------------|:--------|
+| 🚀 | **Deployer** | `copilot-deployer.sh` · `deployer.md` | Rebuilds Docker containers, verifies health & `/api/version`, auto-rolls back on failure | On git push / manual |
+| 🔐 | **GitGuardian** | `copilot-gitguardian.sh` · `gitguardian.md` | Scans working tree & git history for leaked secrets, API keys, and high-entropy tokens | Pre/Post-Deploy |
+| 🧪 | **Regression Test** | `copilot-regressiontest.sh` · `regressiontest.md` | Runs parallel unit, integration, and HTTP smoke suites; files structured bugs on failure | Post-Deploy |
 
-> Read-only — they analyze the codebase and competitors, then write structured idea documents. Never modify code.
+### 🔬 Research & Governance Agents
 
-| | Agent | Focus Area | Output | Schedule |
-|:--|:------|:----------|:-------|:---------|
-| 🎨 | **Website Designer** | Public site UX, animations, landing pages, mobile, conversions | **10 ideas** | ⏱️ Every hour |
-| 🖥️ | **Portal Designer** | Dashboard, admin panel, charts, data viz, user settings | **10 ideas** | ⏱️ Every hour |
-| ⚙️ | **API Architect** | API design, scanners, orchestration, performance, new tools | **10 ideas** | ⏱️ Every hour |
-| 🔥 | **Radical Visionary** | Game-changers — competitor analysis, AI innovation, disruption | **5 transformative** | ⏱️ Every 2h |
-| ⚖️ | **Lawyer** | Privacy policies, ToS, legal compliance, competitor legal | 5 ideas | ⏱️ Every 2h |
-| 📋 | **Compliance** | SOC2, PCI-DSS, HIPAA, ISO 27001 readiness | 5 ideas | ⏱️ Every 2h |
+> Read-only — enforced via `--deny-tool` and `:ro` directory mounts. They analyze the codebase and competitors, then index structured idea documents into `ideas/` and Context-Mode.
 
-### 📊 Support
-
-| | Agent | What It Does | Schedule |
-|:--|:------|:------------|:---------|
-| 📧 | **Reporter** | Sends HTML email summaries of all agent activity | Daily + Weekly |
-| 🚀 | **Deployer** | GitHub Actions — builds Docker images, deploys via SSH | On git push |
+| | Agent | Script / Prompt | Focus Area | Output | Schedule |
+|:--|:------|:----------------|:-----------|:-------|:---------|
+| 🎨 | **Website Designer** | `copilot-designer-web.sh` · `website-designer.md` | Public site UX, animations, landing pages, mobile, conversions | **10 ideas** | ⏱️ Every hour |
+| 🖥️ | **Portal Designer** | `copilot-designer-portal.sh` · `portal-designer.md` | Dashboard, admin panel, charts, data viz, user settings | **10 ideas** | ⏱️ Every hour |
+| ⚙️ | **API Architect** | `copilot-architect-api.sh` · `api-architect.md` | API design, scanners, orchestration, caching, throughput | **10 ideas** | ⏱️ Every hour |
+| 🔥 | **Radical Visionary** | `copilot-radical.sh` · `radical-visionary.md` | 10x game-changers — competitor analysis, AI disruption | **5 transformative** | ⏱️ Every 2h |
+| ⚖️ | **Lawyer** | `copilot-lawyer.sh` · `lawyer.md` | Privacy policies, ToS, GDPR/CCPA legal compliance | **5 ideas** | ⏱️ Every 2h |
+| 📋 | **Compliance** | `copilot-compliance.sh` · `compliance.md` | SOC2, PCI-DSS, HIPAA, ISO 27001 readiness controls | **5 ideas** | ⏱️ Every 2h |
+| 📧 | **Reporter** | `copilot-reporter.sh` · `reporter.md` | Sends HTML executive email summaries of swarm velocity & health | Digest | Daily + Weekly |
 
 ---
 
@@ -431,14 +474,50 @@ nano config.sh                      # Set your project paths
 docker compose up -d
 ```
 
-### npm Install (prompts & CLI only)
+### npm Install & CLI v2.0
 
 ```bash
 npm install -g @gil906/copilot-hive
 
-copilot-hive list                    # List all agent prompts
-copilot-hive show developer          # View Developer agent prompt
-copilot-hive init ./my-hive          # Scaffold agent scripts
+# Agent discovery (all 14 agents + category filters)
+copilot-hive list                              # List all 14 autonomous agents
+copilot-hive list --research                   # Filter: --research, --pipeline, --verification, --security, --governance, --emergency, --orchestrator
+copilot-hive show developer                    # View full prompt (also accepts short aliases like 'improve', 'audit', 'radical')
+
+# Smart Orchestration Topologies & Routing
+copilot-hive topology                          # View 5 topologies, ASCII graph, and live agent utility scores
+copilot-hive topology my-app --set dag-mesh    # Switch a project's orchestration topology
+copilot-hive next-agent my-app                 # Get smart-routed next agent recommendation
+
+# Context-Mode Knowledge Base & Think-in-Code Sandbox
+copilot-hive ctx-index --source ideas --file ideas/radical_latest.md --project my-app
+copilot-hive ctx-search "rate limiting auth" --project my-app
+copilot-hive ctx-stats --project my-app
+copilot-hive ctx-exec --lang javascript --code "console.log(FILE_CONTENT.split('\n').length)" --file app.log
+
+# Diagnostics, Scaffolding & Magic UI Command Center
+copilot-hive doctor                            # Run syntax, prompt, topology & Context-Mode health checks
+copilot-hive dashboard --port 9095             # Launch the Magic UI Web Command Center
+copilot-hive init ./my-hive                    # Scaffold prompts, templates, ideas & .mcp.json (context-mode)
+```
+
+### Programmatic Node.js SDK (`index.js`)
+
+```javascript
+const {
+  getPrompt,
+  listAgents,
+  listTopologies,
+  getTopology,
+  evaluateSwarmIntelligence,
+  contextMode
+} = require('@gil906/copilot-hive');
+
+// 100% backward-compatible with both canonical names and short script names
+const devPrompt = getPrompt('developer'); // or getPrompt('improve')
+const allAgents = listAgents();           // 14 canonical agents
+const topologies = listTopologies();      // 5 smart orchestration topologies
+const intel = evaluateSwarmIntelligence('default');
 ```
 
 ### Test Before Going Live

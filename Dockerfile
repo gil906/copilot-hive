@@ -42,8 +42,7 @@ EXPOSE 9095 9096
 
 # Health check
 HEALTHCHECK --interval=60s --timeout=10s --retries=3 \
-  CMD [ -f /opt/copilot-hive/.dispatcher-heartbeat ] && \
-      [ $(($(date +%s) - $(cat /opt/copilot-hive/.dispatcher-heartbeat))) -lt 180 ] || exit 1
+  CMD curl -sf http://localhost:9095/ > /dev/null && curl -sf http://localhost:9096/ > /dev/null || exit 1
 
 # Run health webhook + dashboard + cron
 CMD ["bash", "-c", "python3 health-webhook.py & node dashboard.js & cron -f"]

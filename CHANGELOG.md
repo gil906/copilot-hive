@@ -2,6 +2,38 @@
 
 All notable changes to Copilot Hive will be documented in this file.
 
+## [2.0.0] - 2026-10-22
+
+### Added
+- **5 Smart Orchestration Topologies (`lib/hive-engine.js`)**:
+  - `cyclic-pipeline` (Deterministic continuous loop: Developer → GitGuardian → Deployer → Regression → Auditor)
+  - `star-hub` (Central Dispatcher hub coordinating specialist spokes with strict health verification)
+  - `dag-mesh` (Directed Acyclic Graph with parallel Fan-Out research/verification stages and Fan-In synthesis)
+  - `adaptive-swarm` (Dynamic routing powered by real-time Multi-Factor Agent Utility Scoring and ICE idea prioritization)
+  - `self-healing-ring` (Circuit-breaker ring with automatic breaker retry, git rollback, and Emergency Fixer escalation)
+- **Context-Mode Knowledge Base & Sandbox Engine (`lib/context-mode.js`)**:
+  - Built-in hybrid retrieval combining Okapi BM25, Porter Stemming, 3-gram Trigram matching, and Reciprocal Rank Fusion (RRF) with proximity reranking
+  - Think-in-Code subprocess sandbox (`ctx-exec`) for JavaScript, Python, and Shell processing of large files (`FILE_CONTENT`) without polluting agent context windows
+  - Live context savings telemetry (`ctx-stats`) tracking raw bytes processed vs. emitted bytes and estimated tokens saved
+  - Automatic `.mcp.json` scaffolding pre-configured with `context-mode` (`npx -y context-mode`)
+- **Magic UI Web Command Center (`dashboard.js`)**:
+  - Complete cybernetic dark-mode overhaul using Magic UI components (`MagicCard`, `BorderBeam`, `AnimatedBeam`, `OrbitingCircles`, `Particles`, `FlickeringGrid`, `NumberTicker`, `AnimatedCircularProgressBar`, `ShimmerButton`, `HyperText`, `BentoGrid`, `Terminal`)
+  - Interactive 5-Topology SVG Studio with live animated energy beams and per-agent utility score bars
+  - Context-Mode Search & Sandbox Studio, Ideas/Bugs CRUD manager, Agent Inspector, and Live Log Terminal
+- **Complete 14-Agent Autonomous Swarm & Prompt Suite**:
+  - Added dedicated prompt files for `deployer.md`, `gitguardian.md`, `regressiontest.md`, `reporter.md`, and `dispatcher.md` alongside the 9 core research/pipeline prompts
+  - Shared `lib/agent-helpers.sh` for DRY prompt loading, Context-Mode pre-indexing, and safe `--deny-tool` enforcement
+- **CLI v2.0 (`bin/cli.js`) & SDK (`index.js`)**:
+  - Added `topology`, `next-agent`, `ctx-index`, `ctx-search`, `ctx-stats`, `ctx-exec`, `doctor`, and `dashboard` CLI subcommands
+  - Full 14-agent support across `list` (with `--research`, `--pipeline`, `--verification`, `--security`, `--governance`, `--emergency`, `--orchestrator` filters) and `show` (supporting both canonical names and short script aliases)
+
+### Fixed
+- Fixed argument order bug in `copilot-dispatcher.sh` where `PROJECT_ID` was overwritten by `--dry-run` before `load-project.sh` ran
+- Fixed `.pipeline-status` race condition between `copilot-dispatcher.sh` and `copilot-improve.sh` / `copilot-audit.sh`
+- Fixed `set_status` JSON escaping and `flock` subshell lock release across all pipeline scripts
+- Fixed `run-all-projects.sh` and `run-agent.sh` to dispatch across all registered projects and support all 14 agent names
+- Removed all hardcoded personal host paths and environment-specific defaults across scripts, configs, and SVG screenshots
+
 ## [1.6.0] - 2026-04-03
 
 ### Added

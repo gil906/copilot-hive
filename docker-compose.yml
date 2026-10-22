@@ -8,7 +8,7 @@ services:
     volumes:
       - ${DOCKER_SOCK:-/var/run/docker.sock}:/var/run/docker.sock
       - ${PROJECT_DIR:-/opt/yourproject}:/opt/yourproject
-      - ${DISCOVER_DIR:-/mnt/media}:/mnt/host:ro
+      - ${DISCOVER_DIR:-/opt/projects}:/mnt/host:ro
       - ./ideas:/opt/copilot-hive/ideas
       - ./changelogs:/opt/copilot-hive/changelogs
       - ./projects:/opt/copilot-hive/projects
@@ -23,7 +23,7 @@ services:
       - "9095:9095"
       - "9096:9096"
     healthcheck:
-      test: ["CMD", "bash", "-c", "[ -f .dispatcher-heartbeat ] && [ $(($(date +%s) - $(cat .dispatcher-heartbeat))) -lt 180 ]"]
+      test: ["CMD-SHELL", "curl -sf http://localhost:9095/ > /dev/null && curl -sf http://localhost:9096/ > /dev/null"]
       interval: 60s
       timeout: 10s
       retries: 3

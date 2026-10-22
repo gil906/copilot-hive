@@ -1,8 +1,10 @@
 #!/bin/bash
 
-# Load central configuration
+# Load central configuration & shared agent helpers
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 source "${SCRIPT_DIR}/config.sh"
+source "${SCRIPT_DIR}/lib/agent-helpers.sh"
+init_agent_env "architect-api" "$@"
 
 # ══════════════════════════════════════════════════════════════════════
 #  API ARCHITECT — Research agent (READ-ONLY)
@@ -11,74 +13,22 @@ source "${SCRIPT_DIR}/config.sh"
 # ══════════════════════════════════════════════════════════════════════
 
 PROJECT_DIR="${PROJECT_DIR:-/opt/yourproject}"
-LOG_FILE="${LOG_FILE:-/opt/copilot-hive/copilot-architect-api.log}"
-NOTIFY="/opt/copilot-hive/notify-smartthings.sh"
-IDEAS_DIR="${IDEAS_DIR:-/opt/copilot-hive/ideas}"
-COPILOT="/usr/local/bin/copilot"
+NOTIFY="${NOTIFY:-${SCRIPT_DIR}/notify-smartthings.sh}"
+IDEAS_DIR="${IDEAS_DIR:-${SCRIPT_DIR}/ideas}"
+COPILOT="${COPILOT:-$(command -v copilot 2>/dev/null || echo /usr/local/bin/copilot)}"
 
 mkdir -p "$IDEAS_DIR"
-
-PAUSE_FILE="${PAUSE_FILE:-/opt/copilot-hive/.agents-paused}"
-AGENT_PAUSE_FILE="${AGENT_PAUSE_FILE:-/opt/copilot-hive/.agent-paused-architect-api}"
-if [ -f "$PAUSE_FILE" ] || [ -f "$AGENT_PAUSE_FILE" ]; then
-  echo "$(date) — SKIPPED: Agent paused" >> "$LOG_FILE"
-  exit 0
-fi
+check_agent_paused "architect-api"
 
 # Prevent concurrent runs of same agent
 acquire_agent_lock "architect-api${PROJECT_ID:+-$PROJECT_ID}" || { echo "$(date) — SKIPPED: Another instance already running" >> "$LOG_FILE"; exit 0; }
 
 echo "======================================" >> "$LOG_FILE"
 echo "API Architect Started: $(date)" >> "$LOG_FILE"
+update_agent_status "architect-api" "running" "Starting API architecture analysis"
 
 # ── Urgent Admin Ideas Check ─────────────────────────────────────────────────
-_IDEAS_DIR="${IDEAS_DIR:-/opt/copilot-hive/ideas}"
-URGENT_IDEA=$(python3 -c "
-import json
-try:
-    with open('${_IDEAS_DIR}/admin_ideas.json') as f:
-        data = json.load(f)
-    urgent = [i for i in data.get('ideas',[]) if i.get('urgent') and i.get('status')=='pending']
-    if urgent:
-        idea = urgent[0]
-        print(idea['title'] + '|||' + idea['description'] + '|||' + idea['id'])
-except: pass
-" 2>/dev/null)
-
-if [ -n "$URGENT_IDEA" ]; then
-  URGENT_TITLE=$(echo "$URGENT_IDEA" | cut -d'|||' -f1)
-  URGENT_DESC=$(echo "$URGENT_IDEA" | cut -d'|||' -f2)
-  URGENT_ID=$(echo "$URGENT_IDEA" | cut -d'|||' -f3)
-  echo "$(date) — URGENT ADMIN IDEA: $URGENT_TITLE" >> "$LOG_FILE"
-  OVERRIDE_PROMPT="You are temporarily a DEVELOPER for Your Project. Your normal role is API Architect but the ADMIN has an urgent request.
-The source code is at ${PROJECT_DIR}. Docker-compose at /opt/docker-compose/yourproject.yml.
-URGENT: ${URGENT_TITLE}
-Details: ${URGENT_DESC}
-RULES: Implement completely. Do not break existing functionality."
-  cd "$PROJECT_DIR"
-  "$COPILOT" --prompt "$OVERRIDE_PROMPT" --yolo --allow-all-paths >> "$LOG_FILE" 2>&1
-  URGENT_EXIT=$?
-  if [ $URGENT_EXIT -eq 0 ]; then
-    python3 -c "
-import json, datetime
-with open('${_IDEAS_DIR}/admin_ideas.json') as f: data = json.load(f)
-for i in data['ideas']:
-    if i['id'] == '$URGENT_ID':
-        i['status'] = 'implemented'; i['urgent'] = False
-        i['implemented_at'] = datetime.datetime.now(datetime.timezone.utc).isoformat()
-        break
-with open('${_IDEAS_DIR}/admin_ideas.json', 'w') as f: json.dump(data, f, indent=2)
-" 2>/dev/null
-    echo "✅ DONE | $(date '+%Y-%m-%d %H:%M') | admin | $URGENT_TITLE" >> "${_IDEAS_DIR}/implemented.log"
-  fi
-  if git -C "$PROJECT_DIR" status --porcelain | grep -q .; then
-    git -C "$PROJECT_DIR" add -A
-    git -C "$PROJECT_DIR" commit -m "urgent: admin request — $URGENT_TITLE
-
-Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
-    git -C "$PROJECT_DIR" push origin main 2>&1 || true
-  fi
-fi
+handle_urgent_admin_idea "architect-api" "API Architect" || true
 
 IMPLEMENTED=""
 [ -f "${IDEAS_DIR}/implemented.log" ] && IMPLEMENTED=$(tail -100 "${IDEAS_DIR}/implemented.log" 2>/dev/null)
@@ -157,7 +107,10 @@ ${PROJECT_CONTEXT}
 ═══════════════════════════════════════════════════════════════════════"
 fi
 
+SMART_CTX=$(get_smart_context "architect-api")
 CONTEXT=$(cat <<CTXEOF
+
+${SMART_CTX}
 
 ALREADY IMPLEMENTED (skip these):
 ${IMPLEMENTED:-  (none yet)}
@@ -165,6 +118,7 @@ CTXEOF
 )
 
 cd "$IDEAS_DIR" || exit 1
+update_agent_status "architect-api" "running" "Analyzing backend architecture & generating 10 ideas"
 
 "$COPILOT" --prompt "${PROMPT}${CONTEXT}" --yolo \
   --add-dir "$PROJECT_DIR" \
@@ -184,7 +138,10 @@ OUTPUT_FILE="${IDEAS_DIR}/api_architect_latest.md"
 if [ ! -f "$OUTPUT_FILE" ] || [ $(wc -l < "$OUTPUT_FILE" 2>/dev/null || echo 0) -lt 5 ]; then
   echo "⚠ Output file missing or too short — agent may have failed silently" >> "$LOG_FILE"
   "$NOTIFY" "API Architect: output file empty or missing" >> "$LOG_FILE" 2>&1
+else
+  index_agent_output "architect-api" "$OUTPUT_FILE"
 fi
 
 [ $EXIT_CODE -ne 0 ] && "$NOTIFY" "API Architect agent failed (exit $EXIT_CODE)" >> "$LOG_FILE" 2>&1
+update_agent_status "architect-api" "idle" "" "$EXIT_CODE"
 exit $EXIT_CODE

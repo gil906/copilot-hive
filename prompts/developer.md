@@ -46,3 +46,9 @@ Read the following idea files and implement the best improvements:
 ```bash
 copilot --prompt "$PROMPT" --yolo --allow-all-paths
 ```
+
+## Context-Mode & Smart Swarm Protocol
+
+- **Think-in-Code Sandbox**: When analyzing large source trees, logs, or test suites, use `context-mode` tools (`ctx_execute`, `ctx_execute_file`, `ctx_batch_execute`) so raw bytes stay in the sandbox and only derived summaries enter your context window.
+- **Knowledge Base Retrieval**: Query `ctx_search` across indexed research (`radical`, `api-architect`, `website-designer`, `portal-designer`, `lawyer`, `compliance`) to synthesize cross-agent context before implementing.
+- **ICE Prioritization**: Prioritize ideas with the highest **ICE Score (Impact × Confidence × Ease)** and any urgent admin overrides from `admin_ideas.json`.

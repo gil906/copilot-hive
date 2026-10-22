@@ -1,108 +1,25 @@
 #!/bin/bash
 
-# Load central configuration
+# Load central configuration & shared agent helpers
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 source "${SCRIPT_DIR}/config.sh"
+source "${SCRIPT_DIR}/lib/agent-helpers.sh"
+init_agent_env "reporter" "$@"
+check_agent_paused "reporter"
 
 # ── Config ────────────────────────────────────────────────────────────────────
 PROJECT_DIR="${PROJECT_DIR:-/opt/yourproject}"
-LOG_FILE="${LOG_FILE:-/opt/copilot-hive/copilot-reporter.log}"
-CHANGELOG_DIR="${CHANGELOG_DIR:-/opt/copilot-hive/changelogs}"
-NOTIFY="/opt/copilot-hive/notify-smartthings.sh"
-COPILOT="/usr/local/bin/copilot"
+CHANGELOG_DIR="${CHANGELOG_DIR:-${SCRIPT_DIR}/changelogs}"
+NOTIFY="${NOTIFY:-${SCRIPT_DIR}/notify-smartthings.sh}"
+COPILOT="${COPILOT:-$(command -v copilot 2>/dev/null || echo /usr/local/bin/copilot)}"
 DB_USER="${DB_USER:-postgres}"
 DB_NAME="${DB_NAME:-yourproject}"
-DB_CONTAINER="${DB_CONTAINER:-yourproject-db}"
+DB_CONTAINER="${CONTAINER_DB:-${DB_CONTAINER:-yourproject-db}}"
 
-# ── Pause check ───────────────────────────────────────────────────────────────
-PAUSE_FILE="${PAUSE_FILE:-/opt/copilot-hive/.agents-paused}"
-AGENT_PAUSE_FILE="${AGENT_PAUSE_FILE:-/opt/copilot-hive/.agent-paused-reporter}"
-if [ -f "$PAUSE_FILE" ] || [ -f "$AGENT_PAUSE_FILE" ]; then
-  echo "$(date) — SKIPPED: Agent paused by admin" >> "$LOG_FILE"
-  exit 0
-fi
-
-# ── Agent Status Helper ──────────────────────────────────────────────────────
-STATUS_FILE="${STATUS_FILE:-/opt/copilot-hive/ideas/agent_status.json}"
-update_agent_status() {
-  local st="$1" step="$2" ec="${3:-}"
-  python3 -c "
-import json, datetime
-f='${STATUS_FILE}'
-try:
-    with open(f) as fh: data = json.load(fh)
-except: data = {'agents': {}}
-a = data.setdefault('agents', {}).setdefault('reporter', {})
-a['status'] = '$st'
-if '$st' == 'running':
-    a['started_at'] = datetime.datetime.now(datetime.timezone.utc).isoformat()
-    a['finished_at'] = None
-if '$step':
-    a['current_step'] = '$step'
-elif '$st' == 'idle':
-    a['current_step'] = None
-    a['finished_at'] = datetime.datetime.now(datetime.timezone.utc).isoformat()
-if '$ec':
-    try: a['last_exit_code'] = int('$ec')
-    except: pass
-import tempfile, os as _os
-tmp = f + '.tmp'
-with open(tmp, 'w') as fh: json.dump(data, fh, indent=2)
-_os.replace(tmp, f)
-" 2>/dev/null
-}
-
-update_agent_status "running" "Starting up"
+update_agent_status "reporter" "running" "Starting up"
 
 # ── Urgent Admin Ideas Check ─────────────────────────────────────────────────
-_IDEAS_DIR="${IDEAS_DIR:-/opt/copilot-hive/ideas}"
-URGENT_IDEA=$(python3 -c "
-import json
-try:
-    with open('${_IDEAS_DIR}/admin_ideas.json') as f:
-        data = json.load(f)
-    urgent = [i for i in data.get('ideas',[]) if i.get('urgent') and i.get('status')=='pending']
-    if urgent:
-        idea = urgent[0]
-        print(idea['title'] + '|||' + idea['description'] + '|||' + idea['id'])
-except: pass
-" 2>/dev/null)
-
-if [ -n "$URGENT_IDEA" ]; then
-  URGENT_TITLE=$(echo "$URGENT_IDEA" | cut -d'|||' -f1)
-  URGENT_DESC=$(echo "$URGENT_IDEA" | cut -d'|||' -f2)
-  URGENT_ID=$(echo "$URGENT_IDEA" | cut -d'|||' -f3)
-  echo "$(date) — URGENT ADMIN IDEA: $URGENT_TITLE" >> "$LOG_FILE"
-  update_agent_status "running" "Urgent admin request: $URGENT_TITLE"
-  OVERRIDE_PROMPT="You are temporarily a DEVELOPER for Your Project. Your normal role is Reporter but the ADMIN has an urgent request.
-The source code is at ${PROJECT_DIR}. Docker-compose at /opt/docker-compose/yourproject.yml.
-URGENT: ${URGENT_TITLE}
-Details: ${URGENT_DESC}
-RULES: Implement completely. Do not break existing functionality."
-  cd "$PROJECT_DIR"
-  "$COPILOT" --prompt "$OVERRIDE_PROMPT" --yolo --allow-all-paths >> "$LOG_FILE" 2>&1
-  URGENT_EXIT=$?
-  if [ $URGENT_EXIT -eq 0 ]; then
-    python3 -c "
-import json, datetime
-with open('${_IDEAS_DIR}/admin_ideas.json') as f: data = json.load(f)
-for i in data['ideas']:
-    if i['id'] == '$URGENT_ID':
-        i['status'] = 'implemented'; i['urgent'] = False
-        i['implemented_at'] = datetime.datetime.now(datetime.timezone.utc).isoformat()
-        break
-with open('${_IDEAS_DIR}/admin_ideas.json', 'w') as f: json.dump(data, f, indent=2)
-" 2>/dev/null
-    echo "✅ DONE | $(date '%Y-%m-%d %H:%M') | admin | $URGENT_TITLE" >> "${_IDEAS_DIR}/implemented.log"
-  fi
-  if git -C "$PROJECT_DIR" status --porcelain | grep -q .; then
-    git -C "$PROJECT_DIR" add -A
-    git -C "$PROJECT_DIR" commit -m "urgent: admin request — $URGENT_TITLE
-
-Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
-    git -C "$PROJECT_DIR" push origin main 2>&1 || true
-  fi
-fi
+handle_urgent_admin_idea "reporter" "Reporter" || true
 
 # Called with: copilot-reporter.sh <daily|weekly>
 REPORT_TYPE="${1:-daily}"
@@ -259,16 +176,15 @@ ${PROJECT_CONTEXT}
 fi
 
 # ── Run ───────────────────────────────────────────────────────────────────────
-update_agent_status "running" "Running Copilot CLI"
+update_agent_status "reporter" "running" "Running Copilot CLI to compose ${PERIOD} report"
 "$COPILOT" --prompt "$PROMPT" --yolo --allow-all-paths >> "$LOG_FILE" 2>&1
 
 EXIT_CODE=$?
 echo "Reporter Finished: $(date) (exit code: $EXIT_CODE)" >> "$LOG_FILE"
 
 if [ $EXIT_CODE -ne 0 ]; then
-  "$NOTIFY" "REPORTER email failed (update_agent_status "idle" "" "$EXIT_CODE"
-exit $EXIT_CODE) at $(date '+%H:%M')" >> "$LOG_FILE" 2>&1
+  "$NOTIFY" "REPORTER email failed (exit $EXIT_CODE) at $(date '+%H:%M')" >> "$LOG_FILE" 2>&1
 fi
 
-update_agent_status "idle" "" "$EXIT_CODE"
+update_agent_status "reporter" "idle" "" "$EXIT_CODE"
 exit $EXIT_CODE

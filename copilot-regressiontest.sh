@@ -1,21 +1,27 @@
 #!/bin/bash
 
-# Load central configuration
+# Load central configuration & shared agent helpers
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 source "${SCRIPT_DIR}/config.sh"
+source "${SCRIPT_DIR}/lib/agent-helpers.sh"
+init_agent_env "regressiontest" "$@"
+check_agent_paused "regressiontest"
+acquire_agent_lock "regressiontest${PROJECT_ID:+-$PROJECT_ID}" || { echo "$(date) — SKIPPED: Another regressiontest instance running" >> "$LOG_FILE"; exit 0; }
 
 # ── Config ────────────────────────────────────────────────────────────────────
 PROJECT_DIR="${PROJECT_DIR:-/opt/yourproject}"
-LOG_FILE="${LOG_FILE:-/opt/copilot-hive/copilot-regressiontest.log}"
-NOTIFY="/opt/copilot-hive/notify-smartthings.sh"
-CHANGELOG_DIR="${CHANGELOG_DIR:-/opt/copilot-hive/changelogs}"
+NOTIFY="${NOTIFY:-${SCRIPT_DIR}/notify-smartthings.sh}"
+CHANGELOG_DIR="${CHANGELOG_DIR:-${SCRIPT_DIR}/changelogs}"
 
-API_BASE="${HEALTH_URL:-http://localhost:8080}"
-WEB_BASE="${HEALTH_URL:-http://localhost:8080}"
+API_BASE="${HEALTH_URL%/}"
+API_BASE="${API_BASE:-http://localhost:8080}"
+WEB_BASE="${HEALTH_URL%/}"
+WEB_BASE="${WEB_BASE:-http://localhost:8080}"
 
 # ── Run ───────────────────────────────────────────────────────────────────────
 echo "======================================" >> "$LOG_FILE"
 echo "Regression Test Started: $(date)" >> "$LOG_FILE"
+update_agent_status "regressiontest" "running" "Running parallel HTTP & container checks"
 
 RESULTS_FILE=$(mktemp)
 trap "rm -f '$RESULTS_FILE'" EXIT
@@ -118,6 +124,8 @@ CHANGELOG_FILE="${CHANGELOG_DIR}/regression_${TIMESTAMP}.txt"
   docker ps --format "  {{.Names}}\t{{.Status}}" 2>/dev/null | head -20
 } > "$CHANGELOG_FILE"
 echo "Changelog saved: $CHANGELOG_FILE" >> "$LOG_FILE"
+index_agent_output "regressiontest" "$CHANGELOG_FILE"
+update_agent_status "regressiontest" "idle" "" "$FAILED"
 
 echo "Regression Test Finished: $(date)" >> "$LOG_FILE"
 exit $FAILED
